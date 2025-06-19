@@ -42,6 +42,13 @@ param vnetEncryptionEnforcement string = 'AllowUnencrypted'
 @description('Optional. The flow timeout in minutes for the Virtual Network, which is used to enable connection tracking for intra-VM flows. Possible values are between 4 and 30 minutes. Default value 0 will set the property to null.')
 param flowTimeoutInMinutes int = 0
 
+@allowed([
+  'Basic'
+  'Disabled'
+])
+@description('Optional. Indicates if private endpoint vnet policies are enabled or disabled on the virtual network. Enabling these policies will raise the limit of the number of private endpoints that can be deployed in this virtual network and its peers.')
+param privateEndpointVNetPolicies string = 'Disabled'
+
 import { diagnosticSettingFullType } from 'br/public:avm/utl/types/avm-common-types:0.2.1'
 @description('Optional. The diagnostic settings of the service.')
 param diagnosticSettings diagnosticSettingFullType[]?
@@ -160,6 +167,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
       : null
     flowTimeoutInMinutes: flowTimeoutInMinutes != 0 ? flowTimeoutInMinutes : null
     enableVmProtection: enableVmProtection
+    privateEndpointVNetPolicies: privateEndpointVNetPolicies
   }
 }
 
