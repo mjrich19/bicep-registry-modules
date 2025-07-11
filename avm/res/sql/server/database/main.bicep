@@ -129,7 +129,7 @@ param zoneRedundant bool = true
 // END OF DATABASE PROPERTIES
 
 @description('Optional. Tags of the resource.')
-param tags object?
+param tags resourceInput<'Microsoft.Sql/servers/database@2023-08-01'>.tags?
 
 @description('Optional. Location for all resources.')
 param location string = resourceGroup().location
@@ -173,14 +173,14 @@ var identity = !empty(managedIdentities)
     }
   : null
 
-resource cMKKeyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = if (!empty(customerManagedKey.?keyVaultResourceId)) {
+resource cMKKeyVault 'Microsoft.KeyVault/vaults@2024-11-01' existing = if (!empty(customerManagedKey.?keyVaultResourceId)) {
   name: last(split(customerManagedKey.?keyVaultResourceId!, '/'))
   scope: resourceGroup(
     split(customerManagedKey.?keyVaultResourceId!, '/')[2],
     split(customerManagedKey.?keyVaultResourceId!, '/')[4]
   )
 
-  resource cMKKey 'keys@2023-07-01' existing = if (!empty(customerManagedKey.?keyVaultResourceId) && !empty(customerManagedKey.?keyName)) {
+  resource cMKKey 'keys@2024-11-01' existing = if (!empty(customerManagedKey.?keyVaultResourceId) && !empty(customerManagedKey.?keyName)) {
     name: customerManagedKey.?keyName!
   }
 }
@@ -201,8 +201,8 @@ resource database 'Microsoft.Sql/servers/databases@2023-08-01' = {
     elasticPoolId: elasticPoolResourceId
     encryptionProtector: customerManagedKey != null
       ? !empty(customerManagedKey.?keyVersion)
-          ? '${cMKKeyVault::cMKKey.properties.keyUri}/${customerManagedKey!.?keyVersion}'
-          : cMKKeyVault::cMKKey.properties.keyUriWithVersion
+          ? '${cMKKeyVault::cMKKey.?properties.keyUri}/${customerManagedKey!.?keyVersion}'
+          : cMKKeyVault::cMKKey.?properties.keyUriWithVersion
       : null
     encryptionProtectorAutoRotation: customerManagedKey.?autoRotationEnabled
     federatedClientId: federatedClientId
@@ -289,8 +289,6 @@ module database_backupLongTermRetentionPolicy 'backup-long-term-retention-policy
   params: {
     serverName: serverName
     databaseName: database.name
-    backupStorageAccessTier: backupLongTermRetentionPolicy.?backupStorageAccessTier
-    makeBackupsImmutable: backupLongTermRetentionPolicy.?makeBackupsImmutable
     weeklyRetention: backupLongTermRetentionPolicy.?weeklyRetention
     monthlyRetention: backupLongTermRetentionPolicy.?monthlyRetention
     yearlyRetention: backupLongTermRetentionPolicy.?yearlyRetention
@@ -350,12 +348,6 @@ type shortTermBackupRetentionPolicyType = {
 @export()
 @description('The long-term backup retention policy for the database.')
 type longTermBackupRetentionPolicyType = {
-  @description('Optional. The BackupStorageAccessTier for the LTR backups.')
-  backupStorageAccessTier: 'Archive' | 'Hot'?
-
-  @description('Optional. The setting whether to make LTR backups immutable.')
-  makeBackupsImmutable: bool?
-
   @description('Optional. Monthly retention in ISO 8601 duration format.')
   monthlyRetention: string?
 
