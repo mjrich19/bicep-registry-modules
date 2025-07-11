@@ -29,7 +29,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-11-01' = {
   }
 }
 
-resource networkSecurityGroupBastion 'Microsoft.Network/networkSecurityGroups@2023-04-01' = {
+resource networkSecurityGroupBastion 'Microsoft.Network/networkSecurityGroups@2024-07-01' = {
   name: networkSecurityGroupBastionName
   location: location
   properties: {

@@ -7,28 +7,53 @@ param managedIdentityName string
 @description('Required. The name of the Route Table to create.')
 param routeTableName string
 
+@description('Required. The name of the Virtual Network to create.')
+param virtualNetworkName string
+
 @description('Required. The name of the Network Security Group to create.')
 param networkSecurityGroupName string
 
 @description('Required. The name of the Bastion Network Security Group to create.')
 param networkSecurityGroupBastionName string
 
-resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
+var addressPrefix = '10.0.0.0/16'
+
+resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: managedIdentityName
   location: location
 }
 
-resource routeTable 'Microsoft.Network/routeTables@2023-04-01' = {
+resource routeTable 'Microsoft.Network/routeTables@2024-07-01' = {
   name: routeTableName
   location: location
 }
 
-resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2023-04-01' = {
+resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2024-07-01' = {
   name: networkSecurityGroupName
   location: location
 }
 
-resource networkSecurityGroupBastion 'Microsoft.Network/networkSecurityGroups@2023-04-01' = {
+resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-11-01' = {
+  name: virtualNetworkName
+  location: location
+  properties: {
+    addressSpace: {
+      addressPrefixes: [
+        addressPrefix
+      ]
+    }
+    subnets: [
+      {
+        name: 'defaultSubnet'
+        properties: {
+          addressPrefix: cidrSubnet(addressPrefix, 16, 0)
+        }
+      }
+    ]
+  }
+}
+
+resource networkSecurityGroupBastion 'Microsoft.Network/networkSecurityGroups@2024-07-01' = {
   name: networkSecurityGroupBastionName
   location: location
   properties: {
@@ -155,6 +180,9 @@ output routeTableResourceId string = routeTable.id
 
 @description('The resource ID of the created Network Security Group.')
 output networkSecurityGroupResourceId string = networkSecurityGroup.id
+
+@description('The resource ID of the created Virtual Network.')
+output virtualNetworkResourceId string = virtualNetwork.id
 
 @description('The resource ID of the created Bastion Network Security Group.')
 output networkSecurityGroupBastionResourceId string = networkSecurityGroupBastion.id

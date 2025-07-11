@@ -13,7 +13,7 @@ param addressPrefixes array
 @description('Optional. Number of IP addresses allocated from the pool. To be used only when the addressPrefix param is defined with a resource ID of an IPAM pool.')
 param ipamPoolNumberOfIpAddresses string?
 
-@description('Optional. The BGP community associated with the virtual network.')
+@description('Optional. The BGP community associated with the virtual network. The value must begin with 12076: and can be followed by a number from 20000 to 49999.')
 param virtualNetworkBgpCommunity string?
 
 @description('Optional. An Array of subnets to deploy to the Virtual Network.')
@@ -60,7 +60,7 @@ param tags object?
 @description('Optional. Enable/Disable usage telemetry for module.')
 param enableTelemetry bool = true
 
-@description('Optional. Indicates if VM protection is enabled for all the subnets in the virtual network.')
+@description('Optional. Deprecated. Indicates if VM protection is enabled for all the subnets in the virtual network. This parameter has been replaced by enableDDosProtection. If you want to enable VM protection, provide a valid DDoS protection plan resource ID in the ddosProtectionPlanResourceId parameter.')
 param enableVmProtection bool?
 
 var enableReferencedModulesTelemetry = false
