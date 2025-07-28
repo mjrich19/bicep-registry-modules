@@ -1,7 +1,7 @@
 targetScope = 'subscription'
 
-metadata name = 'WAF-aligned'
-metadata description = 'This instance deploys the module in alignment with the best-practices of the Well-Architected Framework.'
+metadata name = 'CIDR WAF-aligned'
+metadata description = 'This instance deploys the module in alignment with the best-practices of the Well-Architected Framework using a CIDR IP range.'
 
 // ========== //
 // Parameters //
@@ -15,7 +15,7 @@ param resourceGroupName string = 'dep-${namePrefix}-network.virtualnetworks-${se
 param resourceLocation string = deployment().location
 
 @description('Optional. A short identifier for the kind of deployment. Should be kept short to not run into resource-name length-constraints.')
-param serviceShort string = 'nvnwaf'
+param serviceShort string = 'nvncidrwaf'
 
 @description('Optional. A token to inject into the name of each resource.')
 param namePrefix string = '#_namePrefix_#'

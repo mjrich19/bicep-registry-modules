@@ -1,7 +1,7 @@
 targetScope = 'subscription'
 
-metadata name = 'Using only defaults'
-metadata description = 'This instance deploys the module with the minimum set of required parameters.'
+metadata name = 'CIDR using only defaults'
+metadata description = 'This instance deploys the module with the minimum set of required parameters using a CIDR IP range.'
 
 // ========== //
 // Parameters //
@@ -15,7 +15,7 @@ param resourceGroupName string = 'dep-${namePrefix}-network.virtualnetworks-${se
 param resourceLocation string = deployment().location
 
 @description('Optional. A short identifier for the kind of deployment. Should be kept short to not run into resource-name length-constraints.')
-param serviceShort string = 'nvnmin'
+param serviceShort string = 'nvncidrmin'
 
 @description('Optional. A token to inject into the name of each resource.')
 param namePrefix string = '#_namePrefix_#'

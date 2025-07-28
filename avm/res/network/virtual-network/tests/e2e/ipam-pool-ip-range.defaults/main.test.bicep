@@ -1,7 +1,7 @@
 targetScope = 'subscription'
 
-metadata name = 'Using IPAM Pool Prefix Allocations'
-metadata description = 'This instance deploys the module with IP Addresses allocated from the IPAM Pool'
+metadata name = 'IPAM Pool using only defaults'
+metadata description = 'This instance deploys the module with the minimum set of required parameters using an IPAM Pool IP range'
 
 // ========== //
 // Parameters //
@@ -15,7 +15,7 @@ param resourceGroupName string = 'dep-${namePrefix}-network.virtualnetworks-${se
 param resourceLocation string = deployment().location
 
 @description('Optional. A short identifier for the kind of deployment. Should be kept short to not run into resource-name length-constraints.')
-param serviceShort string = 'nvnipam'
+param serviceShort string = 'nvnipammin'
 
 @description('Optional. A token to inject into the name of each resource.')
 param namePrefix string = '#_namePrefix_#'
