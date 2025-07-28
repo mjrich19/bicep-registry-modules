@@ -1,7 +1,7 @@
 targetScope = 'subscription'
 
-metadata name = 'Using only defaults'
-metadata description = 'This instance deploys the module with the minimum set of required parameters.'
+metadata name = 'IPAM Pool using only defaults'
+metadata description = 'This instance deploys the module with the minimum set of required parameters using an IPAM Pool IP range'
 
 // ========== //
 // Parameters //
@@ -15,7 +15,7 @@ param resourceGroupName string = 'dep-${namePrefix}-network.virtualnetworks-${se
 param resourceLocation string = deployment().location
 
 @description('Optional. A short identifier for the kind of deployment. Should be kept short to not run into resource-name length-constraints.')
-param serviceShort string = 'nvnmin'
+param serviceShort string = 'nvnipammin'
 
 @description('Optional. A token to inject into the name of each resource.')
 param namePrefix string = '#_namePrefix_#'
@@ -26,9 +26,21 @@ param namePrefix string = '#_namePrefix_#'
 
 // General resources
 // =================
-resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+resource resourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' = {
   name: resourceGroupName
   location: resourceLocation
+}
+
+module nestedDependencies 'dependencies.bicep' = {
+  name: '${uniqueString(deployment().name, resourceLocation)}-nestedDependencies'
+  scope: resourceGroup
+  params: {
+    location: resourceLocation
+    networkManagerName: 'dep-${namePrefix}-vnm-${serviceShort}'
+    addressPrefixes: [
+      '172.16.0.0/22'
+    ]
+  }
 }
 
 // ============== //
@@ -42,10 +54,10 @@ module testDeployment '../../../main.bicep' = [
     name: '${uniqueString(deployment().name, resourceLocation)}-test-${serviceShort}-${iteration}'
     params: {
       name: '${namePrefix}${serviceShort}001'
-      location: resourceLocation
       addressPrefixes: [
-        '10.0.0.0/16'
+        nestedDependencies.outputs.networkManagerIpamPoolId
       ]
+      ipamPoolNumberOfIpAddresses: '254'
     }
   }
 ]

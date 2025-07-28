@@ -31,16 +31,18 @@ The following section provides usage examples for the module, which were used to
 
 >**Note**: To reference the module, please use the following syntax `br/public:avm/res/network/virtual-network:<version>`.
 
-- [Using only defaults](#example-1-using-only-defaults)
-- [Using IPAM Pool Prefix Allocations](#example-2-using-ipam-pool-prefix-allocations)
-- [Using an IPv6 address space](#example-3-using-an-ipv6-address-space)
-- [Using large parameter set](#example-4-using-large-parameter-set)
-- [Deploying a bi-directional peering](#example-5-deploying-a-bi-directional-peering)
-- [WAF-aligned](#example-6-waf-aligned)
+- [CIDR using only defaults](#example-1-cidr-using-only-defaults)
+- [CIDR using large parameter set](#example-2-cidr-using-large-parameter-set)
+- [CIDR WAF-aligned](#example-3-cidr-waf-aligned)
+- [IPAM Pool using only defaults](#example-4-ipam-pool-using-only-defaults)
+- [IPAM Pool using large parameter set](#example-5-ipam-pool-using-large-parameter-set)
+- [IPAM Pool WAF Aligned](#example-6-ipam-pool-waf-aligned)
+- [Using an IPv6 address space](#example-7-using-an-ipv6-address-space)
+- [Deploying a bi-directional peering](#example-8-deploying-a-bi-directional-peering)
 
-### Example 1: _Using only defaults_
+### Example 1: _CIDR using only defaults_
 
-This instance deploys the module with the minimum set of required parameters.
+This instance deploys the module with the minimum set of required parameters using a CIDR IP range.
 
 
 <details>
@@ -55,9 +57,7 @@ module virtualNetwork 'br/public:avm/res/network/virtual-network:<version>' = {
     addressPrefixes: [
       '10.0.0.0/16'
     ]
-    name: 'nvnmin001'
-    // Non-required parameters
-    location: '<location>'
+    name: 'nvncidrmin001'
   }
 }
 ```
@@ -81,11 +81,7 @@ module virtualNetwork 'br/public:avm/res/network/virtual-network:<version>' = {
       ]
     },
     "name": {
-      "value": "nvnmin001"
-    },
-    // Non-required parameters
-    "location": {
-      "value": "<location>"
+      "value": "nvncidrmin001"
     }
   }
 }
@@ -105,17 +101,789 @@ using 'br/public:avm/res/network/virtual-network:<version>'
 param addressPrefixes = [
   '10.0.0.0/16'
 ]
-param name = 'nvnmin001'
-// Non-required parameters
-param location = '<location>'
+param name = 'nvncidrmin001'
 ```
 
 </details>
 <p>
 
-### Example 2: _Using IPAM Pool Prefix Allocations_
+### Example 2: _CIDR using large parameter set_
 
-This instance deploys the module with IP Addresses allocated from the IPAM Pool
+This instance deploys the module with most of its features enabled using a CIDR IP range.
+
+
+<details>
+
+<summary>via Bicep module</summary>
+
+```bicep
+module virtualNetwork 'br/public:avm/res/network/virtual-network:<version>' = {
+  name: 'virtualNetworkDeployment'
+  params: {
+    // Required parameters
+    addressPrefixes: [
+      '<addressPrefix>'
+    ]
+    name: 'nvncidrmax001'
+    // Non-required parameters
+    ddosProtectionPlanResourceId: '<ddosProtectionPlanResourceId>'
+    diagnosticSettings: [
+      {
+        eventHubAuthorizationRuleResourceId: '<eventHubAuthorizationRuleResourceId>'
+        eventHubName: '<eventHubName>'
+        metricCategories: [
+          {
+            category: 'AllMetrics'
+          }
+        ]
+        name: 'customSetting'
+        storageAccountResourceId: '<storageAccountResourceId>'
+        workspaceResourceId: '<workspaceResourceId>'
+      }
+    ]
+    dnsServers: [
+      '10.0.1.4'
+      '10.0.1.5'
+    ]
+    enableTelemetry: true
+    flowTimeoutInMinutes: 20
+    location: '<location>'
+    lock: {
+      kind: 'CanNotDelete'
+      name: 'myCustomLockName'
+    }
+    peerings: [
+      {
+        allowForwardedTraffic: true
+        allowGatewayTransit: false
+        allowVirtualNetworkAccess: true
+        remotePeeringAllowForwardedTraffic: true
+        remotePeeringAllowVirtualNetworkAccess: true
+        remotePeeringEnabled: true
+        remotePeeringName: 'customName'
+        remoteVirtualNetworkResourceId: '<remoteVirtualNetworkResourceId>'
+        useRemoteGateways: false
+      }
+    ]
+    roleAssignments: [
+      {
+        name: 'f5c27a7b-9b18-4dc1-b002-db3c38e80b64'
+        principalId: '<principalId>'
+        principalType: 'ServicePrincipal'
+        roleDefinitionIdOrName: 'Owner'
+      }
+      {
+        name: '<name>'
+        principalId: '<principalId>'
+        principalType: 'ServicePrincipal'
+        roleDefinitionIdOrName: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
+      }
+      {
+        principalId: '<principalId>'
+        principalType: 'ServicePrincipal'
+        roleDefinitionIdOrName: '<roleDefinitionIdOrName>'
+      }
+    ]
+    subnets: [
+      {
+        addressPrefix: '<addressPrefix>'
+        name: 'GatewaySubnet'
+      }
+      {
+        addressPrefix: '<addressPrefix>'
+        name: 'az-subnet-x-001'
+        networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
+        roleAssignments: [
+          {
+            principalId: '<principalId>'
+            principalType: 'ServicePrincipal'
+            roleDefinitionIdOrName: 'Owner'
+          }
+          {
+            principalId: '<principalId>'
+            principalType: 'ServicePrincipal'
+            roleDefinitionIdOrName: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
+          }
+          {
+            principalId: '<principalId>'
+            principalType: 'ServicePrincipal'
+            roleDefinitionIdOrName: '<roleDefinitionIdOrName>'
+          }
+        ]
+        routeTableResourceId: '<routeTableResourceId>'
+        serviceEndpoints: [
+          'Microsoft.Sql'
+          'Microsoft.Storage'
+        ]
+      }
+      {
+        addressPrefix: '<addressPrefix>'
+        delegation: 'Microsoft.Netapp/volumes'
+        name: 'az-subnet-x-002'
+        networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
+      }
+      {
+        addressPrefix: '<addressPrefix>'
+        name: 'az-subnet-x-003'
+        networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
+        privateEndpointNetworkPolicies: 'Disabled'
+        privateLinkServiceNetworkPolicies: 'Enabled'
+      }
+      {
+        addressPrefix: '<addressPrefix>'
+        name: 'az-subnet-x-004'
+        natGatewayResourceId: ''
+        networkSecurityGroupResourceId: ''
+        routeTableResourceId: ''
+      }
+      {
+        addressPrefix: '<addressPrefix>'
+        name: 'AzureBastionSubnet'
+        networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
+      }
+      {
+        addressPrefix: '<addressPrefix>'
+        name: 'AzureFirewallSubnet'
+      }
+    ]
+    tags: {
+      Environment: 'Non-Prod'
+      'hidden-title': 'This is visible in the resource name'
+      Role: 'DeploymentValidation'
+    }
+    virtualNetworkBgpCommunity: '12076:20000'
+    vnetEncryption: false
+    vnetEncryptionEnforcement: 'AllowUnencrypted'
+  }
+}
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via JSON parameters file</summary>
+
+```json
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    // Required parameters
+    "addressPrefixes": {
+      "value": [
+        "<addressPrefix>"
+      ]
+    },
+    "name": {
+      "value": "nvncidrmax001"
+    },
+    // Non-required parameters
+    "ddosProtectionPlanResourceId": {
+      "value": "<ddosProtectionPlanResourceId>"
+    },
+    "diagnosticSettings": {
+      "value": [
+        {
+          "eventHubAuthorizationRuleResourceId": "<eventHubAuthorizationRuleResourceId>",
+          "eventHubName": "<eventHubName>",
+          "metricCategories": [
+            {
+              "category": "AllMetrics"
+            }
+          ],
+          "name": "customSetting",
+          "storageAccountResourceId": "<storageAccountResourceId>",
+          "workspaceResourceId": "<workspaceResourceId>"
+        }
+      ]
+    },
+    "dnsServers": {
+      "value": [
+        "10.0.1.4",
+        "10.0.1.5"
+      ]
+    },
+    "enableTelemetry": {
+      "value": true
+    },
+    "flowTimeoutInMinutes": {
+      "value": 20
+    },
+    "location": {
+      "value": "<location>"
+    },
+    "lock": {
+      "value": {
+        "kind": "CanNotDelete",
+        "name": "myCustomLockName"
+      }
+    },
+    "peerings": {
+      "value": [
+        {
+          "allowForwardedTraffic": true,
+          "allowGatewayTransit": false,
+          "allowVirtualNetworkAccess": true,
+          "remotePeeringAllowForwardedTraffic": true,
+          "remotePeeringAllowVirtualNetworkAccess": true,
+          "remotePeeringEnabled": true,
+          "remotePeeringName": "customName",
+          "remoteVirtualNetworkResourceId": "<remoteVirtualNetworkResourceId>",
+          "useRemoteGateways": false
+        }
+      ]
+    },
+    "roleAssignments": {
+      "value": [
+        {
+          "name": "f5c27a7b-9b18-4dc1-b002-db3c38e80b64",
+          "principalId": "<principalId>",
+          "principalType": "ServicePrincipal",
+          "roleDefinitionIdOrName": "Owner"
+        },
+        {
+          "name": "<name>",
+          "principalId": "<principalId>",
+          "principalType": "ServicePrincipal",
+          "roleDefinitionIdOrName": "b24988ac-6180-42a0-ab88-20f7382dd24c"
+        },
+        {
+          "principalId": "<principalId>",
+          "principalType": "ServicePrincipal",
+          "roleDefinitionIdOrName": "<roleDefinitionIdOrName>"
+        }
+      ]
+    },
+    "subnets": {
+      "value": [
+        {
+          "addressPrefix": "<addressPrefix>",
+          "name": "GatewaySubnet"
+        },
+        {
+          "addressPrefix": "<addressPrefix>",
+          "name": "az-subnet-x-001",
+          "networkSecurityGroupResourceId": "<networkSecurityGroupResourceId>",
+          "roleAssignments": [
+            {
+              "principalId": "<principalId>",
+              "principalType": "ServicePrincipal",
+              "roleDefinitionIdOrName": "Owner"
+            },
+            {
+              "principalId": "<principalId>",
+              "principalType": "ServicePrincipal",
+              "roleDefinitionIdOrName": "b24988ac-6180-42a0-ab88-20f7382dd24c"
+            },
+            {
+              "principalId": "<principalId>",
+              "principalType": "ServicePrincipal",
+              "roleDefinitionIdOrName": "<roleDefinitionIdOrName>"
+            }
+          ],
+          "routeTableResourceId": "<routeTableResourceId>",
+          "serviceEndpoints": [
+            "Microsoft.Sql",
+            "Microsoft.Storage"
+          ]
+        },
+        {
+          "addressPrefix": "<addressPrefix>",
+          "delegation": "Microsoft.Netapp/volumes",
+          "name": "az-subnet-x-002",
+          "networkSecurityGroupResourceId": "<networkSecurityGroupResourceId>"
+        },
+        {
+          "addressPrefix": "<addressPrefix>",
+          "name": "az-subnet-x-003",
+          "networkSecurityGroupResourceId": "<networkSecurityGroupResourceId>",
+          "privateEndpointNetworkPolicies": "Disabled",
+          "privateLinkServiceNetworkPolicies": "Enabled"
+        },
+        {
+          "addressPrefix": "<addressPrefix>",
+          "name": "az-subnet-x-004",
+          "natGatewayResourceId": "",
+          "networkSecurityGroupResourceId": "",
+          "routeTableResourceId": ""
+        },
+        {
+          "addressPrefix": "<addressPrefix>",
+          "name": "AzureBastionSubnet",
+          "networkSecurityGroupResourceId": "<networkSecurityGroupResourceId>"
+        },
+        {
+          "addressPrefix": "<addressPrefix>",
+          "name": "AzureFirewallSubnet"
+        }
+      ]
+    },
+    "tags": {
+      "value": {
+        "Environment": "Non-Prod",
+        "hidden-title": "This is visible in the resource name",
+        "Role": "DeploymentValidation"
+      }
+    },
+    "virtualNetworkBgpCommunity": {
+      "value": "12076:20000"
+    },
+    "vnetEncryption": {
+      "value": false
+    },
+    "vnetEncryptionEnforcement": {
+      "value": "AllowUnencrypted"
+    }
+  }
+}
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/res/network/virtual-network:<version>'
+
+// Required parameters
+param addressPrefixes = [
+  '<addressPrefix>'
+]
+param name = 'nvncidrmax001'
+// Non-required parameters
+param ddosProtectionPlanResourceId = '<ddosProtectionPlanResourceId>'
+param diagnosticSettings = [
+  {
+    eventHubAuthorizationRuleResourceId: '<eventHubAuthorizationRuleResourceId>'
+    eventHubName: '<eventHubName>'
+    metricCategories: [
+      {
+        category: 'AllMetrics'
+      }
+    ]
+    name: 'customSetting'
+    storageAccountResourceId: '<storageAccountResourceId>'
+    workspaceResourceId: '<workspaceResourceId>'
+  }
+]
+param dnsServers = [
+  '10.0.1.4'
+  '10.0.1.5'
+]
+param enableTelemetry = true
+param flowTimeoutInMinutes = 20
+param location = '<location>'
+param lock = {
+  kind: 'CanNotDelete'
+  name: 'myCustomLockName'
+}
+param peerings = [
+  {
+    allowForwardedTraffic: true
+    allowGatewayTransit: false
+    allowVirtualNetworkAccess: true
+    remotePeeringAllowForwardedTraffic: true
+    remotePeeringAllowVirtualNetworkAccess: true
+    remotePeeringEnabled: true
+    remotePeeringName: 'customName'
+    remoteVirtualNetworkResourceId: '<remoteVirtualNetworkResourceId>'
+    useRemoteGateways: false
+  }
+]
+param roleAssignments = [
+  {
+    name: 'f5c27a7b-9b18-4dc1-b002-db3c38e80b64'
+    principalId: '<principalId>'
+    principalType: 'ServicePrincipal'
+    roleDefinitionIdOrName: 'Owner'
+  }
+  {
+    name: '<name>'
+    principalId: '<principalId>'
+    principalType: 'ServicePrincipal'
+    roleDefinitionIdOrName: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
+  }
+  {
+    principalId: '<principalId>'
+    principalType: 'ServicePrincipal'
+    roleDefinitionIdOrName: '<roleDefinitionIdOrName>'
+  }
+]
+param subnets = [
+  {
+    addressPrefix: '<addressPrefix>'
+    name: 'GatewaySubnet'
+  }
+  {
+    addressPrefix: '<addressPrefix>'
+    name: 'az-subnet-x-001'
+    networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
+    roleAssignments: [
+      {
+        principalId: '<principalId>'
+        principalType: 'ServicePrincipal'
+        roleDefinitionIdOrName: 'Owner'
+      }
+      {
+        principalId: '<principalId>'
+        principalType: 'ServicePrincipal'
+        roleDefinitionIdOrName: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
+      }
+      {
+        principalId: '<principalId>'
+        principalType: 'ServicePrincipal'
+        roleDefinitionIdOrName: '<roleDefinitionIdOrName>'
+      }
+    ]
+    routeTableResourceId: '<routeTableResourceId>'
+    serviceEndpoints: [
+      'Microsoft.Sql'
+      'Microsoft.Storage'
+    ]
+  }
+  {
+    addressPrefix: '<addressPrefix>'
+    delegation: 'Microsoft.Netapp/volumes'
+    name: 'az-subnet-x-002'
+    networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
+  }
+  {
+    addressPrefix: '<addressPrefix>'
+    name: 'az-subnet-x-003'
+    networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
+    privateEndpointNetworkPolicies: 'Disabled'
+    privateLinkServiceNetworkPolicies: 'Enabled'
+  }
+  {
+    addressPrefix: '<addressPrefix>'
+    name: 'az-subnet-x-004'
+    natGatewayResourceId: ''
+    networkSecurityGroupResourceId: ''
+    routeTableResourceId: ''
+  }
+  {
+    addressPrefix: '<addressPrefix>'
+    name: 'AzureBastionSubnet'
+    networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
+  }
+  {
+    addressPrefix: '<addressPrefix>'
+    name: 'AzureFirewallSubnet'
+  }
+]
+param tags = {
+  Environment: 'Non-Prod'
+  'hidden-title': 'This is visible in the resource name'
+  Role: 'DeploymentValidation'
+}
+param virtualNetworkBgpCommunity = '12076:20000'
+param vnetEncryption = false
+param vnetEncryptionEnforcement = 'AllowUnencrypted'
+```
+
+</details>
+<p>
+
+### Example 3: _CIDR WAF-aligned_
+
+This instance deploys the module in alignment with the best-practices of the Well-Architected Framework using a CIDR IP range.
+
+
+<details>
+
+<summary>via Bicep module</summary>
+
+```bicep
+module virtualNetwork 'br/public:avm/res/network/virtual-network:<version>' = {
+  name: 'virtualNetworkDeployment'
+  params: {
+    // Required parameters
+    addressPrefixes: [
+      '<addressPrefix>'
+    ]
+    name: 'nvncidrwaf001'
+    // Non-required parameters
+    diagnosticSettings: [
+      {
+        eventHubAuthorizationRuleResourceId: '<eventHubAuthorizationRuleResourceId>'
+        eventHubName: '<eventHubName>'
+        metricCategories: [
+          {
+            category: 'AllMetrics'
+          }
+        ]
+        name: 'customSetting'
+        storageAccountResourceId: '<storageAccountResourceId>'
+        workspaceResourceId: '<workspaceResourceId>'
+      }
+    ]
+    dnsServers: [
+      '10.0.1.4'
+      '10.0.1.5'
+    ]
+    flowTimeoutInMinutes: 20
+    location: '<location>'
+    subnets: [
+      {
+        addressPrefix: '<addressPrefix>'
+        name: 'GatewaySubnet'
+      }
+      {
+        addressPrefix: '<addressPrefix>'
+        name: 'az-subnet-x-001'
+        networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
+        roleAssignments: [
+          {
+            principalId: '<principalId>'
+            principalType: 'ServicePrincipal'
+            roleDefinitionIdOrName: 'Reader'
+          }
+        ]
+        routeTableResourceId: '<routeTableResourceId>'
+        serviceEndpoints: [
+          'Microsoft.Sql'
+          'Microsoft.Storage'
+        ]
+      }
+      {
+        addressPrefix: '<addressPrefix>'
+        delegation: 'Microsoft.Netapp/volumes'
+        name: 'az-subnet-x-002'
+        networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
+      }
+      {
+        addressPrefix: '<addressPrefix>'
+        name: 'az-subnet-x-003'
+        networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
+        privateEndpointNetworkPolicies: 'Disabled'
+        privateLinkServiceNetworkPolicies: 'Enabled'
+      }
+      {
+        addressPrefix: '<addressPrefix>'
+        name: 'AzureBastionSubnet'
+        networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
+      }
+      {
+        addressPrefix: '<addressPrefix>'
+        name: 'AzureFirewallSubnet'
+      }
+    ]
+    tags: {
+      Environment: 'Non-Prod'
+      'hidden-title': 'This is visible in the resource name'
+      Role: 'DeploymentValidation'
+    }
+  }
+}
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via JSON parameters file</summary>
+
+```json
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    // Required parameters
+    "addressPrefixes": {
+      "value": [
+        "<addressPrefix>"
+      ]
+    },
+    "name": {
+      "value": "nvncidrwaf001"
+    },
+    // Non-required parameters
+    "diagnosticSettings": {
+      "value": [
+        {
+          "eventHubAuthorizationRuleResourceId": "<eventHubAuthorizationRuleResourceId>",
+          "eventHubName": "<eventHubName>",
+          "metricCategories": [
+            {
+              "category": "AllMetrics"
+            }
+          ],
+          "name": "customSetting",
+          "storageAccountResourceId": "<storageAccountResourceId>",
+          "workspaceResourceId": "<workspaceResourceId>"
+        }
+      ]
+    },
+    "dnsServers": {
+      "value": [
+        "10.0.1.4",
+        "10.0.1.5"
+      ]
+    },
+    "flowTimeoutInMinutes": {
+      "value": 20
+    },
+    "location": {
+      "value": "<location>"
+    },
+    "subnets": {
+      "value": [
+        {
+          "addressPrefix": "<addressPrefix>",
+          "name": "GatewaySubnet"
+        },
+        {
+          "addressPrefix": "<addressPrefix>",
+          "name": "az-subnet-x-001",
+          "networkSecurityGroupResourceId": "<networkSecurityGroupResourceId>",
+          "roleAssignments": [
+            {
+              "principalId": "<principalId>",
+              "principalType": "ServicePrincipal",
+              "roleDefinitionIdOrName": "Reader"
+            }
+          ],
+          "routeTableResourceId": "<routeTableResourceId>",
+          "serviceEndpoints": [
+            "Microsoft.Sql",
+            "Microsoft.Storage"
+          ]
+        },
+        {
+          "addressPrefix": "<addressPrefix>",
+          "delegation": "Microsoft.Netapp/volumes",
+          "name": "az-subnet-x-002",
+          "networkSecurityGroupResourceId": "<networkSecurityGroupResourceId>"
+        },
+        {
+          "addressPrefix": "<addressPrefix>",
+          "name": "az-subnet-x-003",
+          "networkSecurityGroupResourceId": "<networkSecurityGroupResourceId>",
+          "privateEndpointNetworkPolicies": "Disabled",
+          "privateLinkServiceNetworkPolicies": "Enabled"
+        },
+        {
+          "addressPrefix": "<addressPrefix>",
+          "name": "AzureBastionSubnet",
+          "networkSecurityGroupResourceId": "<networkSecurityGroupResourceId>"
+        },
+        {
+          "addressPrefix": "<addressPrefix>",
+          "name": "AzureFirewallSubnet"
+        }
+      ]
+    },
+    "tags": {
+      "value": {
+        "Environment": "Non-Prod",
+        "hidden-title": "This is visible in the resource name",
+        "Role": "DeploymentValidation"
+      }
+    }
+  }
+}
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/res/network/virtual-network:<version>'
+
+// Required parameters
+param addressPrefixes = [
+  '<addressPrefix>'
+]
+param name = 'nvncidrwaf001'
+// Non-required parameters
+param diagnosticSettings = [
+  {
+    eventHubAuthorizationRuleResourceId: '<eventHubAuthorizationRuleResourceId>'
+    eventHubName: '<eventHubName>'
+    metricCategories: [
+      {
+        category: 'AllMetrics'
+      }
+    ]
+    name: 'customSetting'
+    storageAccountResourceId: '<storageAccountResourceId>'
+    workspaceResourceId: '<workspaceResourceId>'
+  }
+]
+param dnsServers = [
+  '10.0.1.4'
+  '10.0.1.5'
+]
+param flowTimeoutInMinutes = 20
+param location = '<location>'
+param subnets = [
+  {
+    addressPrefix: '<addressPrefix>'
+    name: 'GatewaySubnet'
+  }
+  {
+    addressPrefix: '<addressPrefix>'
+    name: 'az-subnet-x-001'
+    networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
+    roleAssignments: [
+      {
+        principalId: '<principalId>'
+        principalType: 'ServicePrincipal'
+        roleDefinitionIdOrName: 'Reader'
+      }
+    ]
+    routeTableResourceId: '<routeTableResourceId>'
+    serviceEndpoints: [
+      'Microsoft.Sql'
+      'Microsoft.Storage'
+    ]
+  }
+  {
+    addressPrefix: '<addressPrefix>'
+    delegation: 'Microsoft.Netapp/volumes'
+    name: 'az-subnet-x-002'
+    networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
+  }
+  {
+    addressPrefix: '<addressPrefix>'
+    name: 'az-subnet-x-003'
+    networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
+    privateEndpointNetworkPolicies: 'Disabled'
+    privateLinkServiceNetworkPolicies: 'Enabled'
+  }
+  {
+    addressPrefix: '<addressPrefix>'
+    name: 'AzureBastionSubnet'
+    networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
+  }
+  {
+    addressPrefix: '<addressPrefix>'
+    name: 'AzureFirewallSubnet'
+  }
+]
+param tags = {
+  Environment: 'Non-Prod'
+  'hidden-title': 'This is visible in the resource name'
+  Role: 'DeploymentValidation'
+}
+```
+
+</details>
+<p>
+
+### Example 4: _IPAM Pool using only defaults_
+
+This instance deploys the module with the minimum set of required parameters using an IPAM Pool IP range
 
 
 <details>
@@ -130,7 +898,82 @@ module virtualNetwork 'br/public:avm/res/network/virtual-network:<version>' = {
     addressPrefixes: [
       '<networkManagerIpamPoolId>'
     ]
-    name: 'nvnipam001'
+    name: 'nvnipammin001'
+    // Non-required parameters
+    ipamPoolNumberOfIpAddresses: '254'
+  }
+}
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via JSON parameters file</summary>
+
+```json
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    // Required parameters
+    "addressPrefixes": {
+      "value": [
+        "<networkManagerIpamPoolId>"
+      ]
+    },
+    "name": {
+      "value": "nvnipammin001"
+    },
+    // Non-required parameters
+    "ipamPoolNumberOfIpAddresses": {
+      "value": "254"
+    }
+  }
+}
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/res/network/virtual-network:<version>'
+
+// Required parameters
+param addressPrefixes = [
+  '<networkManagerIpamPoolId>'
+]
+param name = 'nvnipammin001'
+// Non-required parameters
+param ipamPoolNumberOfIpAddresses = '254'
+```
+
+</details>
+<p>
+
+### Example 5: _IPAM Pool using large parameter set_
+
+This instance deploys the module with most of its features enabled using an IPAM Pool IP range.
+
+
+<details>
+
+<summary>via Bicep module</summary>
+
+```bicep
+module virtualNetwork 'br/public:avm/res/network/virtual-network:<version>' = {
+  name: 'virtualNetworkDeployment'
+  params: {
+    // Required parameters
+    addressPrefixes: [
+      '<networkManagerIpamPoolId>'
+    ]
+    name: 'nvnipammax001'
     // Non-required parameters
     ipamPoolNumberOfIpAddresses: '254'
     location: '<location>'
@@ -192,7 +1035,7 @@ module virtualNetwork 'br/public:avm/res/network/virtual-network:<version>' = {
       ]
     },
     "name": {
-      "value": "nvnipam001"
+      "value": "nvnipammax001"
     },
     // Non-required parameters
     "ipamPoolNumberOfIpAddresses": {
@@ -256,7 +1099,7 @@ using 'br/public:avm/res/network/virtual-network:<version>'
 param addressPrefixes = [
   '<networkManagerIpamPoolId>'
 ]
-param name = 'nvnipam001'
+param name = 'nvnipammax001'
 // Non-required parameters
 param ipamPoolNumberOfIpAddresses = '254'
 param location = '<location>'
@@ -300,7 +1143,194 @@ param subnets = [
 </details>
 <p>
 
-### Example 3: _Using an IPv6 address space_
+### Example 6: _IPAM Pool WAF Aligned_
+
+This instance deploys the module in alignment with the best-practices of the Well-Architected Framework using an IPAM Pool IP range.
+
+
+<details>
+
+<summary>via Bicep module</summary>
+
+```bicep
+module virtualNetwork 'br/public:avm/res/network/virtual-network:<version>' = {
+  name: 'virtualNetworkDeployment'
+  params: {
+    // Required parameters
+    addressPrefixes: [
+      '<networkManagerIpamPoolId>'
+    ]
+    name: 'nvnipamwaf001'
+    // Non-required parameters
+    ipamPoolNumberOfIpAddresses: '254'
+    location: '<location>'
+    subnets: [
+      {
+        ipamPoolPrefixAllocations: [
+          {
+            numberOfIpAddresses: '64'
+            pool: {
+              id: '<id>'
+            }
+          }
+        ]
+        name: 'subnet-1'
+      }
+      {
+        ipamPoolPrefixAllocations: [
+          {
+            numberOfIpAddresses: '16'
+            pool: {
+              id: '<id>'
+            }
+          }
+        ]
+        name: 'subnet-2'
+      }
+      {
+        ipamPoolPrefixAllocations: [
+          {
+            numberOfIpAddresses: '8'
+            pool: {
+              id: '<id>'
+            }
+          }
+        ]
+        name: 'subnet-3'
+      }
+    ]
+  }
+}
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via JSON parameters file</summary>
+
+```json
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    // Required parameters
+    "addressPrefixes": {
+      "value": [
+        "<networkManagerIpamPoolId>"
+      ]
+    },
+    "name": {
+      "value": "nvnipamwaf001"
+    },
+    // Non-required parameters
+    "ipamPoolNumberOfIpAddresses": {
+      "value": "254"
+    },
+    "location": {
+      "value": "<location>"
+    },
+    "subnets": {
+      "value": [
+        {
+          "ipamPoolPrefixAllocations": [
+            {
+              "numberOfIpAddresses": "64",
+              "pool": {
+                "id": "<id>"
+              }
+            }
+          ],
+          "name": "subnet-1"
+        },
+        {
+          "ipamPoolPrefixAllocations": [
+            {
+              "numberOfIpAddresses": "16",
+              "pool": {
+                "id": "<id>"
+              }
+            }
+          ],
+          "name": "subnet-2"
+        },
+        {
+          "ipamPoolPrefixAllocations": [
+            {
+              "numberOfIpAddresses": "8",
+              "pool": {
+                "id": "<id>"
+              }
+            }
+          ],
+          "name": "subnet-3"
+        }
+      ]
+    }
+  }
+}
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/res/network/virtual-network:<version>'
+
+// Required parameters
+param addressPrefixes = [
+  '<networkManagerIpamPoolId>'
+]
+param name = 'nvnipamwaf001'
+// Non-required parameters
+param ipamPoolNumberOfIpAddresses = '254'
+param location = '<location>'
+param subnets = [
+  {
+    ipamPoolPrefixAllocations: [
+      {
+        numberOfIpAddresses: '64'
+        pool: {
+          id: '<id>'
+        }
+      }
+    ]
+    name: 'subnet-1'
+  }
+  {
+    ipamPoolPrefixAllocations: [
+      {
+        numberOfIpAddresses: '16'
+        pool: {
+          id: '<id>'
+        }
+      }
+    ]
+    name: 'subnet-2'
+  }
+  {
+    ipamPoolPrefixAllocations: [
+      {
+        numberOfIpAddresses: '8'
+        pool: {
+          id: '<id>'
+        }
+      }
+    ]
+    name: 'subnet-3'
+  }
+]
+```
+
+</details>
+<p>
+
+### Example 7: _Using an IPv6 address space_
 
 This instance deploys the module using an IPv6 address space.
 
@@ -407,423 +1437,7 @@ param subnets = [
 </details>
 <p>
 
-### Example 4: _Using large parameter set_
-
-This instance deploys the module with most of its features enabled.
-
-
-<details>
-
-<summary>via Bicep module</summary>
-
-```bicep
-module virtualNetwork 'br/public:avm/res/network/virtual-network:<version>' = {
-  name: 'virtualNetworkDeployment'
-  params: {
-    // Required parameters
-    addressPrefixes: [
-      '<addressPrefix>'
-    ]
-    name: 'nvnmax001'
-    // Non-required parameters
-    diagnosticSettings: [
-      {
-        eventHubAuthorizationRuleResourceId: '<eventHubAuthorizationRuleResourceId>'
-        eventHubName: '<eventHubName>'
-        metricCategories: [
-          {
-            category: 'AllMetrics'
-          }
-        ]
-        name: 'customSetting'
-        storageAccountResourceId: '<storageAccountResourceId>'
-        workspaceResourceId: '<workspaceResourceId>'
-      }
-    ]
-    dnsServers: [
-      '10.0.1.4'
-      '10.0.1.5'
-    ]
-    flowTimeoutInMinutes: 20
-    location: '<location>'
-    lock: {
-      kind: 'CanNotDelete'
-      name: 'myCustomLockName'
-    }
-    roleAssignments: [
-      {
-        name: 'f5c27a7b-9b18-4dc1-b002-db3c38e80b64'
-        principalId: '<principalId>'
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: 'Owner'
-      }
-      {
-        name: '<name>'
-        principalId: '<principalId>'
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
-      }
-      {
-        principalId: '<principalId>'
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: '<roleDefinitionIdOrName>'
-      }
-    ]
-    subnets: [
-      {
-        addressPrefix: '<addressPrefix>'
-        name: 'GatewaySubnet'
-      }
-      {
-        addressPrefix: '<addressPrefix>'
-        name: 'az-subnet-x-001'
-        networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
-        roleAssignments: [
-          {
-            principalId: '<principalId>'
-            principalType: 'ServicePrincipal'
-            roleDefinitionIdOrName: 'Owner'
-          }
-          {
-            principalId: '<principalId>'
-            principalType: 'ServicePrincipal'
-            roleDefinitionIdOrName: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
-          }
-          {
-            principalId: '<principalId>'
-            principalType: 'ServicePrincipal'
-            roleDefinitionIdOrName: '<roleDefinitionIdOrName>'
-          }
-        ]
-        routeTableResourceId: '<routeTableResourceId>'
-        serviceEndpoints: [
-          'Microsoft.Sql'
-          'Microsoft.Storage'
-        ]
-      }
-      {
-        addressPrefix: '<addressPrefix>'
-        delegation: 'Microsoft.Netapp/volumes'
-        name: 'az-subnet-x-002'
-        networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
-      }
-      {
-        addressPrefix: '<addressPrefix>'
-        name: 'az-subnet-x-003'
-        networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
-        privateEndpointNetworkPolicies: 'Disabled'
-        privateLinkServiceNetworkPolicies: 'Enabled'
-      }
-      {
-        addressPrefix: '<addressPrefix>'
-        name: 'az-subnet-x-004'
-        natGatewayResourceId: ''
-        networkSecurityGroupResourceId: ''
-        routeTableResourceId: ''
-      }
-      {
-        addressPrefix: '<addressPrefix>'
-        name: 'AzureBastionSubnet'
-        networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
-      }
-      {
-        addressPrefix: '<addressPrefix>'
-        name: 'AzureFirewallSubnet'
-      }
-    ]
-    tags: {
-      Environment: 'Non-Prod'
-      'hidden-title': 'This is visible in the resource name'
-      Role: 'DeploymentValidation'
-    }
-  }
-}
-```
-
-</details>
-<p>
-
-<details>
-
-<summary>via JSON parameters file</summary>
-
-```json
-{
-  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {
-    // Required parameters
-    "addressPrefixes": {
-      "value": [
-        "<addressPrefix>"
-      ]
-    },
-    "name": {
-      "value": "nvnmax001"
-    },
-    // Non-required parameters
-    "diagnosticSettings": {
-      "value": [
-        {
-          "eventHubAuthorizationRuleResourceId": "<eventHubAuthorizationRuleResourceId>",
-          "eventHubName": "<eventHubName>",
-          "metricCategories": [
-            {
-              "category": "AllMetrics"
-            }
-          ],
-          "name": "customSetting",
-          "storageAccountResourceId": "<storageAccountResourceId>",
-          "workspaceResourceId": "<workspaceResourceId>"
-        }
-      ]
-    },
-    "dnsServers": {
-      "value": [
-        "10.0.1.4",
-        "10.0.1.5"
-      ]
-    },
-    "flowTimeoutInMinutes": {
-      "value": 20
-    },
-    "location": {
-      "value": "<location>"
-    },
-    "lock": {
-      "value": {
-        "kind": "CanNotDelete",
-        "name": "myCustomLockName"
-      }
-    },
-    "roleAssignments": {
-      "value": [
-        {
-          "name": "f5c27a7b-9b18-4dc1-b002-db3c38e80b64",
-          "principalId": "<principalId>",
-          "principalType": "ServicePrincipal",
-          "roleDefinitionIdOrName": "Owner"
-        },
-        {
-          "name": "<name>",
-          "principalId": "<principalId>",
-          "principalType": "ServicePrincipal",
-          "roleDefinitionIdOrName": "b24988ac-6180-42a0-ab88-20f7382dd24c"
-        },
-        {
-          "principalId": "<principalId>",
-          "principalType": "ServicePrincipal",
-          "roleDefinitionIdOrName": "<roleDefinitionIdOrName>"
-        }
-      ]
-    },
-    "subnets": {
-      "value": [
-        {
-          "addressPrefix": "<addressPrefix>",
-          "name": "GatewaySubnet"
-        },
-        {
-          "addressPrefix": "<addressPrefix>",
-          "name": "az-subnet-x-001",
-          "networkSecurityGroupResourceId": "<networkSecurityGroupResourceId>",
-          "roleAssignments": [
-            {
-              "principalId": "<principalId>",
-              "principalType": "ServicePrincipal",
-              "roleDefinitionIdOrName": "Owner"
-            },
-            {
-              "principalId": "<principalId>",
-              "principalType": "ServicePrincipal",
-              "roleDefinitionIdOrName": "b24988ac-6180-42a0-ab88-20f7382dd24c"
-            },
-            {
-              "principalId": "<principalId>",
-              "principalType": "ServicePrincipal",
-              "roleDefinitionIdOrName": "<roleDefinitionIdOrName>"
-            }
-          ],
-          "routeTableResourceId": "<routeTableResourceId>",
-          "serviceEndpoints": [
-            "Microsoft.Sql",
-            "Microsoft.Storage"
-          ]
-        },
-        {
-          "addressPrefix": "<addressPrefix>",
-          "delegation": "Microsoft.Netapp/volumes",
-          "name": "az-subnet-x-002",
-          "networkSecurityGroupResourceId": "<networkSecurityGroupResourceId>"
-        },
-        {
-          "addressPrefix": "<addressPrefix>",
-          "name": "az-subnet-x-003",
-          "networkSecurityGroupResourceId": "<networkSecurityGroupResourceId>",
-          "privateEndpointNetworkPolicies": "Disabled",
-          "privateLinkServiceNetworkPolicies": "Enabled"
-        },
-        {
-          "addressPrefix": "<addressPrefix>",
-          "name": "az-subnet-x-004",
-          "natGatewayResourceId": "",
-          "networkSecurityGroupResourceId": "",
-          "routeTableResourceId": ""
-        },
-        {
-          "addressPrefix": "<addressPrefix>",
-          "name": "AzureBastionSubnet",
-          "networkSecurityGroupResourceId": "<networkSecurityGroupResourceId>"
-        },
-        {
-          "addressPrefix": "<addressPrefix>",
-          "name": "AzureFirewallSubnet"
-        }
-      ]
-    },
-    "tags": {
-      "value": {
-        "Environment": "Non-Prod",
-        "hidden-title": "This is visible in the resource name",
-        "Role": "DeploymentValidation"
-      }
-    }
-  }
-}
-```
-
-</details>
-<p>
-
-<details>
-
-<summary>via Bicep parameters file</summary>
-
-```bicep-params
-using 'br/public:avm/res/network/virtual-network:<version>'
-
-// Required parameters
-param addressPrefixes = [
-  '<addressPrefix>'
-]
-param name = 'nvnmax001'
-// Non-required parameters
-param diagnosticSettings = [
-  {
-    eventHubAuthorizationRuleResourceId: '<eventHubAuthorizationRuleResourceId>'
-    eventHubName: '<eventHubName>'
-    metricCategories: [
-      {
-        category: 'AllMetrics'
-      }
-    ]
-    name: 'customSetting'
-    storageAccountResourceId: '<storageAccountResourceId>'
-    workspaceResourceId: '<workspaceResourceId>'
-  }
-]
-param dnsServers = [
-  '10.0.1.4'
-  '10.0.1.5'
-]
-param flowTimeoutInMinutes = 20
-param location = '<location>'
-param lock = {
-  kind: 'CanNotDelete'
-  name: 'myCustomLockName'
-}
-param roleAssignments = [
-  {
-    name: 'f5c27a7b-9b18-4dc1-b002-db3c38e80b64'
-    principalId: '<principalId>'
-    principalType: 'ServicePrincipal'
-    roleDefinitionIdOrName: 'Owner'
-  }
-  {
-    name: '<name>'
-    principalId: '<principalId>'
-    principalType: 'ServicePrincipal'
-    roleDefinitionIdOrName: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
-  }
-  {
-    principalId: '<principalId>'
-    principalType: 'ServicePrincipal'
-    roleDefinitionIdOrName: '<roleDefinitionIdOrName>'
-  }
-]
-param subnets = [
-  {
-    addressPrefix: '<addressPrefix>'
-    name: 'GatewaySubnet'
-  }
-  {
-    addressPrefix: '<addressPrefix>'
-    name: 'az-subnet-x-001'
-    networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
-    roleAssignments: [
-      {
-        principalId: '<principalId>'
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: 'Owner'
-      }
-      {
-        principalId: '<principalId>'
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
-      }
-      {
-        principalId: '<principalId>'
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: '<roleDefinitionIdOrName>'
-      }
-    ]
-    routeTableResourceId: '<routeTableResourceId>'
-    serviceEndpoints: [
-      'Microsoft.Sql'
-      'Microsoft.Storage'
-    ]
-  }
-  {
-    addressPrefix: '<addressPrefix>'
-    delegation: 'Microsoft.Netapp/volumes'
-    name: 'az-subnet-x-002'
-    networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
-  }
-  {
-    addressPrefix: '<addressPrefix>'
-    name: 'az-subnet-x-003'
-    networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
-    privateEndpointNetworkPolicies: 'Disabled'
-    privateLinkServiceNetworkPolicies: 'Enabled'
-  }
-  {
-    addressPrefix: '<addressPrefix>'
-    name: 'az-subnet-x-004'
-    natGatewayResourceId: ''
-    networkSecurityGroupResourceId: ''
-    routeTableResourceId: ''
-  }
-  {
-    addressPrefix: '<addressPrefix>'
-    name: 'AzureBastionSubnet'
-    networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
-  }
-  {
-    addressPrefix: '<addressPrefix>'
-    name: 'AzureFirewallSubnet'
-  }
-]
-param tags = {
-  Environment: 'Non-Prod'
-  'hidden-title': 'This is visible in the resource name'
-  Role: 'DeploymentValidation'
-}
-```
-
-</details>
-<p>
-
-### Example 5: _Deploying a bi-directional peering_
+### Example 8: _Deploying a bi-directional peering_
 
 This instance deploys the module with both an inbound and outbound peering.
 
@@ -1003,298 +1617,6 @@ param tags = {
 </details>
 <p>
 
-### Example 6: _WAF-aligned_
-
-This instance deploys the module in alignment with the best-practices of the Well-Architected Framework.
-
-
-<details>
-
-<summary>via Bicep module</summary>
-
-```bicep
-module virtualNetwork 'br/public:avm/res/network/virtual-network:<version>' = {
-  name: 'virtualNetworkDeployment'
-  params: {
-    // Required parameters
-    addressPrefixes: [
-      '<addressPrefix>'
-    ]
-    name: 'nvnwaf001'
-    // Non-required parameters
-    diagnosticSettings: [
-      {
-        eventHubAuthorizationRuleResourceId: '<eventHubAuthorizationRuleResourceId>'
-        eventHubName: '<eventHubName>'
-        metricCategories: [
-          {
-            category: 'AllMetrics'
-          }
-        ]
-        name: 'customSetting'
-        storageAccountResourceId: '<storageAccountResourceId>'
-        workspaceResourceId: '<workspaceResourceId>'
-      }
-    ]
-    dnsServers: [
-      '10.0.1.4'
-      '10.0.1.5'
-    ]
-    flowTimeoutInMinutes: 20
-    location: '<location>'
-    subnets: [
-      {
-        addressPrefix: '<addressPrefix>'
-        name: 'GatewaySubnet'
-      }
-      {
-        addressPrefix: '<addressPrefix>'
-        name: 'az-subnet-x-001'
-        networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
-        roleAssignments: [
-          {
-            principalId: '<principalId>'
-            principalType: 'ServicePrincipal'
-            roleDefinitionIdOrName: 'Reader'
-          }
-        ]
-        routeTableResourceId: '<routeTableResourceId>'
-        serviceEndpoints: [
-          'Microsoft.Sql'
-          'Microsoft.Storage'
-        ]
-      }
-      {
-        addressPrefix: '<addressPrefix>'
-        delegation: 'Microsoft.Netapp/volumes'
-        name: 'az-subnet-x-002'
-        networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
-      }
-      {
-        addressPrefix: '<addressPrefix>'
-        name: 'az-subnet-x-003'
-        networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
-        privateEndpointNetworkPolicies: 'Disabled'
-        privateLinkServiceNetworkPolicies: 'Enabled'
-      }
-      {
-        addressPrefix: '<addressPrefix>'
-        name: 'AzureBastionSubnet'
-        networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
-      }
-      {
-        addressPrefix: '<addressPrefix>'
-        name: 'AzureFirewallSubnet'
-      }
-    ]
-    tags: {
-      Environment: 'Non-Prod'
-      'hidden-title': 'This is visible in the resource name'
-      Role: 'DeploymentValidation'
-    }
-  }
-}
-```
-
-</details>
-<p>
-
-<details>
-
-<summary>via JSON parameters file</summary>
-
-```json
-{
-  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {
-    // Required parameters
-    "addressPrefixes": {
-      "value": [
-        "<addressPrefix>"
-      ]
-    },
-    "name": {
-      "value": "nvnwaf001"
-    },
-    // Non-required parameters
-    "diagnosticSettings": {
-      "value": [
-        {
-          "eventHubAuthorizationRuleResourceId": "<eventHubAuthorizationRuleResourceId>",
-          "eventHubName": "<eventHubName>",
-          "metricCategories": [
-            {
-              "category": "AllMetrics"
-            }
-          ],
-          "name": "customSetting",
-          "storageAccountResourceId": "<storageAccountResourceId>",
-          "workspaceResourceId": "<workspaceResourceId>"
-        }
-      ]
-    },
-    "dnsServers": {
-      "value": [
-        "10.0.1.4",
-        "10.0.1.5"
-      ]
-    },
-    "flowTimeoutInMinutes": {
-      "value": 20
-    },
-    "location": {
-      "value": "<location>"
-    },
-    "subnets": {
-      "value": [
-        {
-          "addressPrefix": "<addressPrefix>",
-          "name": "GatewaySubnet"
-        },
-        {
-          "addressPrefix": "<addressPrefix>",
-          "name": "az-subnet-x-001",
-          "networkSecurityGroupResourceId": "<networkSecurityGroupResourceId>",
-          "roleAssignments": [
-            {
-              "principalId": "<principalId>",
-              "principalType": "ServicePrincipal",
-              "roleDefinitionIdOrName": "Reader"
-            }
-          ],
-          "routeTableResourceId": "<routeTableResourceId>",
-          "serviceEndpoints": [
-            "Microsoft.Sql",
-            "Microsoft.Storage"
-          ]
-        },
-        {
-          "addressPrefix": "<addressPrefix>",
-          "delegation": "Microsoft.Netapp/volumes",
-          "name": "az-subnet-x-002",
-          "networkSecurityGroupResourceId": "<networkSecurityGroupResourceId>"
-        },
-        {
-          "addressPrefix": "<addressPrefix>",
-          "name": "az-subnet-x-003",
-          "networkSecurityGroupResourceId": "<networkSecurityGroupResourceId>",
-          "privateEndpointNetworkPolicies": "Disabled",
-          "privateLinkServiceNetworkPolicies": "Enabled"
-        },
-        {
-          "addressPrefix": "<addressPrefix>",
-          "name": "AzureBastionSubnet",
-          "networkSecurityGroupResourceId": "<networkSecurityGroupResourceId>"
-        },
-        {
-          "addressPrefix": "<addressPrefix>",
-          "name": "AzureFirewallSubnet"
-        }
-      ]
-    },
-    "tags": {
-      "value": {
-        "Environment": "Non-Prod",
-        "hidden-title": "This is visible in the resource name",
-        "Role": "DeploymentValidation"
-      }
-    }
-  }
-}
-```
-
-</details>
-<p>
-
-<details>
-
-<summary>via Bicep parameters file</summary>
-
-```bicep-params
-using 'br/public:avm/res/network/virtual-network:<version>'
-
-// Required parameters
-param addressPrefixes = [
-  '<addressPrefix>'
-]
-param name = 'nvnwaf001'
-// Non-required parameters
-param diagnosticSettings = [
-  {
-    eventHubAuthorizationRuleResourceId: '<eventHubAuthorizationRuleResourceId>'
-    eventHubName: '<eventHubName>'
-    metricCategories: [
-      {
-        category: 'AllMetrics'
-      }
-    ]
-    name: 'customSetting'
-    storageAccountResourceId: '<storageAccountResourceId>'
-    workspaceResourceId: '<workspaceResourceId>'
-  }
-]
-param dnsServers = [
-  '10.0.1.4'
-  '10.0.1.5'
-]
-param flowTimeoutInMinutes = 20
-param location = '<location>'
-param subnets = [
-  {
-    addressPrefix: '<addressPrefix>'
-    name: 'GatewaySubnet'
-  }
-  {
-    addressPrefix: '<addressPrefix>'
-    name: 'az-subnet-x-001'
-    networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
-    roleAssignments: [
-      {
-        principalId: '<principalId>'
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: 'Reader'
-      }
-    ]
-    routeTableResourceId: '<routeTableResourceId>'
-    serviceEndpoints: [
-      'Microsoft.Sql'
-      'Microsoft.Storage'
-    ]
-  }
-  {
-    addressPrefix: '<addressPrefix>'
-    delegation: 'Microsoft.Netapp/volumes'
-    name: 'az-subnet-x-002'
-    networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
-  }
-  {
-    addressPrefix: '<addressPrefix>'
-    name: 'az-subnet-x-003'
-    networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
-    privateEndpointNetworkPolicies: 'Disabled'
-    privateLinkServiceNetworkPolicies: 'Enabled'
-  }
-  {
-    addressPrefix: '<addressPrefix>'
-    name: 'AzureBastionSubnet'
-    networkSecurityGroupResourceId: '<networkSecurityGroupResourceId>'
-  }
-  {
-    addressPrefix: '<addressPrefix>'
-    name: 'AzureFirewallSubnet'
-  }
-]
-param tags = {
-  Environment: 'Non-Prod'
-  'hidden-title': 'This is visible in the resource name'
-  Role: 'DeploymentValidation'
-}
-```
-
-</details>
-<p>
-
 ## Parameters
 
 **Required parameters**
@@ -1312,7 +1634,7 @@ param tags = {
 | [`diagnosticSettings`](#parameter-diagnosticsettings) | array | The diagnostic settings of the service. |
 | [`dnsServers`](#parameter-dnsservers) | array | DNS Servers associated to the Virtual Network. |
 | [`enableTelemetry`](#parameter-enabletelemetry) | bool | Enable/Disable usage telemetry for module. |
-| [`enableVmProtection`](#parameter-enablevmprotection) | bool | Indicates if VM protection is enabled for all the subnets in the virtual network. |
+| [`enableVmProtection`](#parameter-enablevmprotection) | bool | Deprecated. Indicates if VM protection is enabled for all the subnets in the virtual network. This parameter has been replaced by enableDDosProtection. If you want to enable VM protection, provide a valid DDoS protection plan resource ID in the ddosProtectionPlanResourceId parameter. |
 | [`flowTimeoutInMinutes`](#parameter-flowtimeoutinminutes) | int | The flow timeout in minutes for the Virtual Network, which is used to enable connection tracking for intra-VM flows. Possible values are between 4 and 30 minutes. Default value 0 will set the property to null. |
 | [`ipamPoolNumberOfIpAddresses`](#parameter-ipampoolnumberofipaddresses) | string | Number of IP addresses allocated from the pool. To be used only when the addressPrefix param is defined with a resource ID of an IPAM pool. |
 | [`location`](#parameter-location) | string | Location for all resources. |
@@ -1321,7 +1643,7 @@ param tags = {
 | [`roleAssignments`](#parameter-roleassignments) | array | Array of role assignments to create. |
 | [`subnets`](#parameter-subnets) | array | An Array of subnets to deploy to the Virtual Network. |
 | [`tags`](#parameter-tags) | object | Tags of the resource. |
-| [`virtualNetworkBgpCommunity`](#parameter-virtualnetworkbgpcommunity) | string | The BGP community associated with the virtual network. |
+| [`virtualNetworkBgpCommunity`](#parameter-virtualnetworkbgpcommunity) | string | The BGP community associated with the virtual network. The value must begin with 12076: and can be followed by a number from 20000 to 49999. |
 | [`vnetEncryption`](#parameter-vnetencryption) | bool | Indicates if encryption is enabled on virtual network and if VM without encryption is allowed in encrypted VNet. Requires the EnableVNetEncryption feature to be registered for the subscription and a supported region to use this property. |
 | [`vnetEncryptionEnforcement`](#parameter-vnetencryptionenforcement) | string | If the encrypted VNet allows VM that does not support encryption. Can only be used when vnetEncryption is enabled. |
 
@@ -1509,7 +1831,7 @@ Enable/Disable usage telemetry for module.
 
 ### Parameter: `enableVmProtection`
 
-Indicates if VM protection is enabled for all the subnets in the virtual network.
+Deprecated. Indicates if VM protection is enabled for all the subnets in the virtual network. This parameter has been replaced by enableDDosProtection. If you want to enable VM protection, provide a valid DDoS protection plan resource ID in the ddosProtectionPlanResourceId parameter.
 
 - Required: No
 - Type: bool
@@ -2086,7 +2408,7 @@ Tags of the resource.
 
 ### Parameter: `virtualNetworkBgpCommunity`
 
-The BGP community associated with the virtual network.
+The BGP community associated with the virtual network. The value must begin with 12076: and can be followed by a number from 20000 to 49999.
 
 - Required: No
 - Type: string

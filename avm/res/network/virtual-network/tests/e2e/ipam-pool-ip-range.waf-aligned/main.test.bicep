@@ -1,7 +1,7 @@
 targetScope = 'subscription'
 
-metadata name = 'Deploying a bi-directional peering'
-metadata description = 'This instance deploys the module with both an inbound and outbound peering.'
+metadata name = 'IPAM Pool WAF Aligned'
+metadata description = 'This instance deploys the module in alignment with the best-practices of the Well-Architected Framework using an IPAM Pool IP range.'
 
 // ========== //
 // Parameters //
@@ -15,7 +15,7 @@ param resourceGroupName string = 'dep-${namePrefix}-network.virtualnetworks-${se
 param resourceLocation string = deployment().location
 
 @description('Optional. A short identifier for the kind of deployment. Should be kept short to not run into resource-name length-constraints.')
-param serviceShort string = 'nvnpeer'
+param serviceShort string = 'nvnipamwaf'
 
 @description('Optional. A token to inject into the name of each resource.')
 param namePrefix string = '#_namePrefix_#'
@@ -32,12 +32,14 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' = {
 }
 
 module nestedDependencies 'dependencies.bicep' = {
-  scope: resourceGroup
   name: '${uniqueString(deployment().name, resourceLocation)}-nestedDependencies'
+  scope: resourceGroup
   params: {
     location: resourceLocation
-    virtualNetworkName: 'dep-${namePrefix}-vnet-${serviceShort}'
-    networkSecurityGroupBastionName: 'dep-${namePrefix}-nsg-bastion-${serviceShort}'
+    networkManagerName: 'dep-${namePrefix}-vnm-${serviceShort}'
+    addressPrefixes: [
+      '172.16.0.0/22'
+    ]
   }
 }
 
@@ -54,41 +56,44 @@ module testDeployment '../../../main.bicep' = [
       name: '${namePrefix}${serviceShort}001'
       location: resourceLocation
       addressPrefixes: [
-        '10.1.0.0/24'
+        nestedDependencies.outputs.networkManagerIpamPoolId
       ]
+      ipamPoolNumberOfIpAddresses: '254'
       subnets: [
         {
-          addressPrefix: '10.1.0.0/26'
-          name: 'GatewaySubnet'
+          name: 'subnet-1'
+          ipamPoolPrefixAllocations: [
+            {
+              pool: {
+                id: nestedDependencies.outputs.networkManagerIpamPoolId
+              }
+              numberOfIpAddresses: '64'
+            }
+          ]
         }
         {
-          addressPrefix: '10.1.0.64/26'
-          name: 'AzureBastionSubnet'
-          networkSecurityGroupResourceId: nestedDependencies.outputs.networkSecurityGroupBastionResourceId
+          name: 'subnet-2'
+          ipamPoolPrefixAllocations: [
+            {
+              pool: {
+                id: nestedDependencies.outputs.networkManagerIpamPoolId
+              }
+              numberOfIpAddresses: '16'
+            }
+          ]
         }
         {
-          addressPrefix: '10.1.0.128/26'
-          name: 'AzureFirewallSubnet'
+          name: 'subnet-3'
+          ipamPoolPrefixAllocations: [
+            {
+              pool: {
+                id: nestedDependencies.outputs.networkManagerIpamPoolId
+              }
+              numberOfIpAddresses: '8'
+            }
+          ]
         }
       ]
-      peerings: [
-        {
-          allowForwardedTraffic: true
-          allowGatewayTransit: false
-          allowVirtualNetworkAccess: true
-          remotePeeringAllowForwardedTraffic: true
-          remotePeeringAllowVirtualNetworkAccess: true
-          remotePeeringEnabled: true
-          remotePeeringName: 'customName'
-          remoteVirtualNetworkResourceId: nestedDependencies.outputs.virtualNetworkResourceId
-          useRemoteGateways: false
-        }
-      ]
-      tags: {
-        'hidden-title': 'This is visible in the resource name'
-        Environment: 'Non-Prod'
-        Role: 'DeploymentValidation'
-      }
     }
   }
 ]
