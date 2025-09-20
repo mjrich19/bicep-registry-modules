@@ -33,7 +33,7 @@ resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2024-07-0
   location: location
 }
 
-resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-11-01' = {
+resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-07-01' = {
   name: virtualNetworkName
   location: location
   properties: {

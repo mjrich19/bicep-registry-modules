@@ -156,7 +156,7 @@ resource networkSecurityGroupBastion 'Microsoft.Network/networkSecurityGroups@20
   }
 }
 
-resource networkManager 'Microsoft.Network/networkManagers@2024-05-01' = {
+resource networkManager 'Microsoft.Network/networkManagers@2024-07-01' = {
   name: networkManagerName
   location: location
   properties: {
@@ -168,7 +168,7 @@ resource networkManager 'Microsoft.Network/networkManagers@2024-05-01' = {
   }
 }
 
-resource networkManagerIpamPool 'Microsoft.Network/networkManagers/ipamPools@2024-05-01' = {
+resource networkManagerIpamPool 'Microsoft.Network/networkManagers/ipamPools@2024-07-01' = {
   name: '${networkManagerName}-ipamPool'
   parent: networkManager
   location: location
