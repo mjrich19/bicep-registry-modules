@@ -1,32 +1,50 @@
 metadata name = 'Virtual Network Subnets'
 metadata description = 'This module deploys a Virtual Network Subnet.'
 
+/*
+  Required Parameters
+*/
+
 @description('Required. The Name of the subnet resource.')
 param name string
 
-@description('Conditional. The name of the parent virtual network. Required if the template is used in a standalone deployment.')
-param virtualNetworkName string
+/*
+  Conditionally Required Parameters
+*/
 
 @description('Conditional. The address prefix for the subnet. Required if `addressPrefixes` is empty.')
 param addressPrefix string?
 
+@description('Conditional. List of address prefixes for the subnet. Required if `addressPrefix` is empty.')
+param addressPrefixes string[]?
+
 @description('Conditional. The address space for the subnet, deployed from IPAM Pool. Required if `addressPrefixes` and `addressPrefix` is empty.')
 param ipamPoolPrefixAllocations object[]?
 
-@description('Optional. The resource ID of the network security group to assign to the subnet.')
-param networkSecurityGroupResourceId string?
+@description('Conditional. The name of the parent virtual network. Required if the template is used in a standalone deployment.')
+param virtualNetworkName string
 
-@description('Optional. The resource ID of the route table to assign to the subnet.')
-param routeTableResourceId string?
+/*
+  Optional Parameters
+*/
 
-@description('Optional. The service endpoints to enable on the subnet.')
-param serviceEndpoints string[] = []
+@description('Optional. Application gateway IP configurations of virtual network resource.')
+param applicationGatewayIPConfigurations array = []
+
+@description('Optional. Set this property to false to disable default outbound connectivity for all VMs in the subnet. This property can only be set at the time of subnet creation and cannot be updated for an existing subnet.')
+param defaultOutboundAccess bool?
 
 @description('Optional. The delegation to enable on the subnet.')
 param delegation string?
 
+@description('Optional. Enable/Disable usage telemetry for module.')
+param enableTelemetry bool = true
+
 @description('Optional. The resource ID of the NAT Gateway to use for the subnet.')
 param natGatewayResourceId string?
+
+@description('Optional. The resource ID of the network security group to assign to the subnet.')
+param networkSecurityGroupResourceId string?
 
 @description('Optional. Enable or disable apply network policies on private endpoint in the subnet.')
 @allowed([
@@ -44,27 +62,21 @@ param privateEndpointNetworkPolicies string?
 ])
 param privateLinkServiceNetworkPolicies string?
 
-@description('Conditional. List of address prefixes for the subnet. Required if `addressPrefix` is empty.')
-param addressPrefixes string[]?
-
-@description('Optional. Set this property to false to disable default outbound connectivity for all VMs in the subnet. This property can only be set at the time of subnet creation and cannot be updated for an existing subnet.')
-param defaultOutboundAccess bool?
-
-@description('Optional. Set this property to Tenant to allow sharing the subnet with other subscriptions in your AAD tenant. This property can only be set if defaultOutboundAccess is set to false, both properties can only be set if the subnet is empty.')
-param sharingScope ('DelegatedServices' | 'Tenant')?
-
-@description('Optional. Application gateway IP configurations of virtual network resource.')
-param applicationGatewayIPConfigurations array = []
-
-@description('Optional. An array of service endpoint policies.')
-param serviceEndpointPolicies array = []
-
 import { roleAssignmentType } from 'br/public:avm/utl/types/avm-common-types:0.2.1'
 @description('Optional. Array of role assignments to create.')
 param roleAssignments roleAssignmentType[]?
 
-@description('Optional. Enable/Disable usage telemetry for module.')
-param enableTelemetry bool = true
+@description('Optional. The resource ID of the route table to assign to the subnet.')
+param routeTableResourceId string?
+
+@description('Optional. The service endpoints to enable on the subnet.')
+param serviceEndpoints string[] = []
+
+@description('Optional. An array of service endpoint policies.')
+param serviceEndpointPolicies array = []
+
+@description('Optional. Set this property to Tenant to allow sharing the subnet with other subscriptions in your AAD tenant. This property can only be set if defaultOutboundAccess is set to false, both properties can only be set if the subnet is empty.')
+param sharingScope ('DelegatedServices' | 'Tenant')?
 
 var builtInRoleNames = {
   Contributor: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
@@ -119,32 +131,13 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-07-01' existing 
 }
 
 resource subnet 'Microsoft.Network/virtualNetworks/subnets@2024-07-01' = {
-  name: name
   parent: virtualNetwork
+  name: name
   properties: {
     addressPrefix: addressPrefix
     addressPrefixes: addressPrefixes
-    ipamPoolPrefixAllocations: ipamPoolPrefixAllocations
-    networkSecurityGroup: !empty(networkSecurityGroupResourceId)
-      ? {
-          id: networkSecurityGroupResourceId
-        }
-      : null
-    routeTable: !empty(routeTableResourceId)
-      ? {
-          id: routeTableResourceId
-        }
-      : null
-    natGateway: !empty(natGatewayResourceId)
-      ? {
-          id: natGatewayResourceId
-        }
-      : null
-    serviceEndpoints: [
-      for endpoint in serviceEndpoints: {
-        service: endpoint
-      }
-    ]
+    applicationGatewayIPConfigurations: applicationGatewayIPConfigurations
+    defaultOutboundAccess: defaultOutboundAccess
     delegations: !empty(delegation)
       ? [
           {
@@ -155,11 +148,30 @@ resource subnet 'Microsoft.Network/virtualNetworks/subnets@2024-07-01' = {
           }
         ]
       : []
+    ipamPoolPrefixAllocations: ipamPoolPrefixAllocations
+    natGateway: !empty(natGatewayResourceId)
+      ? {
+          id: natGatewayResourceId
+        }
+      : null
+    networkSecurityGroup: !empty(networkSecurityGroupResourceId)
+      ? {
+          id: networkSecurityGroupResourceId
+        }
+      : null
     privateEndpointNetworkPolicies: privateEndpointNetworkPolicies
     privateLinkServiceNetworkPolicies: privateLinkServiceNetworkPolicies
-    applicationGatewayIPConfigurations: applicationGatewayIPConfigurations
+    routeTable: !empty(routeTableResourceId)
+      ? {
+          id: routeTableResourceId
+        }
+      : null
     serviceEndpointPolicies: serviceEndpointPolicies
-    defaultOutboundAccess: defaultOutboundAccess
+    serviceEndpoints: [
+      for endpoint in serviceEndpoints: {
+        service: endpoint
+      }
+    ]
     sharingScope: sharingScope
   }
 }

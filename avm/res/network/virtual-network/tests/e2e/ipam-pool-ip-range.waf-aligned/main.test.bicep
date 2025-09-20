@@ -7,6 +7,17 @@ metadata description = 'This instance deploys the module in alignment with the b
 // Parameters //
 // ========== //
 
+/*
+  Required Parameters
+*/
+
+/*
+  Optional Parameters
+*/
+
+@description('Optional. A token to inject into the name of each resource.')
+param namePrefix string = '#_namePrefix_#'
+
 @description('Optional. The name of the resource group to deploy for testing purposes.')
 @maxLength(90)
 param resourceGroupName string = 'dep-${namePrefix}-network.virtualnetworks-${serviceShort}-rg'
@@ -16,9 +27,6 @@ param resourceLocation string = deployment().location
 
 @description('Optional. A short identifier for the kind of deployment. Should be kept short to not run into resource-name length-constraints.')
 param serviceShort string = 'nvnipamwaf'
-
-@description('Optional. A token to inject into the name of each resource.')
-param namePrefix string = '#_namePrefix_#'
 
 // ============ //
 // Dependencies //
@@ -76,7 +84,6 @@ module testDeployment '../../../main.bicep' = [
       addressPrefixes: [
         nestedDependencies.outputs.networkManagerIpamPoolId
       ]
-      ipamPoolNumberOfIpAddresses: '65536'
       diagnosticSettings: [
         {
           name: 'customSetting'
@@ -96,6 +103,7 @@ module testDeployment '../../../main.bicep' = [
         '10.0.1.5'
       ]
       flowTimeoutInMinutes: 20
+      ipamPoolNumberOfIpAddresses: '65536'
       subnets: [
         {
           name: 'GatewaySubnet'

@@ -1,11 +1,19 @@
-@description('Optional. The location to deploy to.')
-param location string = resourceGroup().location
+/*
+  Required Parameters
+*/
+
+@description('Required. The name of the Bastion Network Security Group to create.')
+param networkSecurityGroupBastionName string
 
 @description('Required. The name of the Virtual Network to create.')
 param virtualNetworkName string
 
-@description('Required. The name of the Bastion Network Security Group to create.')
-param networkSecurityGroupBastionName string
+/*
+  Optional Parameters
+*/
+
+@description('Optional. The location to deploy to.')
+param location string = resourceGroup().location
 
 var addressPrefix = '10.0.0.0/16'
 

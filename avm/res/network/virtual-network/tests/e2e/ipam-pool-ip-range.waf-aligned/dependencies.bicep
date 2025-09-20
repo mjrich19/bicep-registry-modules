@@ -1,5 +1,18 @@
-@description('Optional. The location to deploy to.')
-param location string = resourceGroup().location
+/*
+  Required Parameters
+*/
+
+@description('Required. List of IP address prefixes to be used for the IPAM pool.')
+param addressPrefixes array
+
+@description('Required. The name of the Network Manager to create.')
+param networkManagerName string
+
+@description('Required. The name of the Bastion Network Security Group to create.')
+param networkSecurityGroupBastionName string
+
+@description('Required. The name of the Network Security Group to create.')
+param networkSecurityGroupName string
 
 @description('Required. The name of the Managed Identity to create.')
 param managedIdentityName string
@@ -7,17 +20,12 @@ param managedIdentityName string
 @description('Required. The name of the Route Table to create.')
 param routeTableName string
 
-@description('Required. The name of the Network Security Group to create.')
-param networkSecurityGroupName string
+/*
+  Optional Parameters
+*/
 
-@description('Required. The name of the Bastion Network Security Group to create.')
-param networkSecurityGroupBastionName string
-
-@description('Required. The name of the Network Manager to create.')
-param networkManagerName string
-
-@description('Required. List of IP address prefixes to be used for the IPAM pool.')
-param addressPrefixes array
+@description('Optional. The location to deploy to.')
+param location string = resourceGroup().location
 
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: managedIdentityName

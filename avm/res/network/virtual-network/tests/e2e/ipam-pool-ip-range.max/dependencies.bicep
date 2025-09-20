@@ -1,11 +1,19 @@
-@description('. The location to deploy to.')
-param location string = resourceGroup().location
+/*
+  Required Parameters
+*/
+
+@description('Required. List of IP address prefixes to be used for the IPAM pool.')
+param addressPrefixes array
 
 @description('Required. The name of the Network Manager to create.')
 param networkManagerName string
 
-@description('Required. List of IP address prefixes to be used for the IPAM pool.')
-param addressPrefixes array
+/*
+  Optional Parameters
+*/
+
+@description('Optional. The location to deploy to.')
+param location string = resourceGroup().location
 
 resource networkManager 'Microsoft.Network/networkManagers@2024-07-01' = {
   name: networkManagerName

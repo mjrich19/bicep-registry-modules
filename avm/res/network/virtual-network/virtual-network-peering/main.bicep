@@ -1,14 +1,23 @@
 metadata name = 'Virtual Network Peerings'
 metadata description = 'This module deploys a Virtual Network Peering.'
 
-@description('Optional. The Name of VNET Peering resource. If not provided, default value will be localVnetName-remoteVnetName.')
-param name string = 'peer-${localVnetName}-${last(split(remoteVirtualNetworkResourceId, '/'))}'
+/*
+  Required Parameters
+*/
+
+@description('Required. The Resource ID of the VNet that is this Local VNet is being peered to. Should be in the format of a Resource ID.')
+param remoteVirtualNetworkResourceId string
+
+/*
+  Conditionally Required Parameters
+*/
 
 @description('Conditional. The name of the parent Virtual Network to add the peering to. Required if the template is used in a standalone deployment.')
 param localVnetName string
 
-@description('Required. The Resource ID of the VNet that is this Local VNet is being peered to. Should be in the format of a Resource ID.')
-param remoteVirtualNetworkResourceId string
+/*
+  Optional Parameters
+*/
 
 @description('Optional. Whether the forwarded traffic from the VMs in the local virtual network will be allowed/disallowed in remote virtual network. Default is true.')
 param allowForwardedTraffic bool = true
@@ -22,6 +31,9 @@ param allowVirtualNetworkAccess bool = true
 @description('Optional. If we need to verify the provisioning state of the remote gateway. Default is true.')
 param doNotVerifyRemoteGateways bool = true
 
+@description('Optional. The Name of VNET Peering resource. If not provided, default value will be localVnetName-remoteVnetName.')
+param name string = 'peer-${localVnetName}-${last(split(remoteVirtualNetworkResourceId, '/'))}'
+
 @description('Optional. If remote gateways can be used on this virtual network. If the flag is set to true, and allowGatewayTransit on remote peering is also true, virtual network will use gateways of remote virtual network for transit. Only one peering can have this flag set to true. This flag cannot be set if virtual network already has a gateway. Default is false.')
 param useRemoteGateways bool = false
 
@@ -30,17 +42,17 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-07-01' existing 
 }
 
 resource virtualNetworkPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2024-07-01' = {
-  name: name
   parent: virtualNetwork
+  name: name
   properties: {
     allowForwardedTraffic: allowForwardedTraffic
     allowGatewayTransit: allowGatewayTransit
     allowVirtualNetworkAccess: allowVirtualNetworkAccess
     doNotVerifyRemoteGateways: doNotVerifyRemoteGateways
-    useRemoteGateways: useRemoteGateways
     remoteVirtualNetwork: {
       id: remoteVirtualNetworkResourceId
     }
+    useRemoteGateways: useRemoteGateways
   }
 }
 

@@ -1,32 +1,69 @@
 metadata name = 'Virtual Networks'
 metadata description = 'This module deploys a Virtual Network (vNet).'
 
-@description('Required. The name of the Virtual Network (vNet).')
-param name string
-
-@description('Optional. Location for all resources.')
-param location string = resourceGroup().location
+/*
+  Required Parameters
+*/
 
 @description('Required. An Array of 1 or more IP Address Prefixes OR the resource ID of the IPAM pool to be used for the Virtual Network. When specifying an IPAM pool resource ID you must also set a value for the parameter called `ipamPoolNumberOfIpAddresses`.')
 param addressPrefixes array
 
-@description('Optional. Number of IP addresses allocated from the pool. To be used only when the addressPrefix param is defined with a resource ID of an IPAM pool.')
+@description('Required. The name of the Virtual Network (vNet).')
+param name string
+
+/*
+  Conditionally Required Parameters
+*/
+
+@description('Conditional. Number of IP addresses allocated from the pool. Required when the addressPrefixes param is defined with a resource ID of an IPAM pool.')
 param ipamPoolNumberOfIpAddresses string?
 
-@description('Optional. The BGP community associated with the virtual network. The value must begin with 12076: and can be followed by a number from 20000 to 49999.')
-param virtualNetworkBgpCommunity string?
+/*
+  Optional Parameters
+*/
 
-@description('Optional. An Array of subnets to deploy to the Virtual Network.')
-param subnets subnetType[]?
-
-@description('Optional. DNS Servers associated to the Virtual Network.')
-param dnsServers string[]?
+@description('Optional. Location for all resources.')
+param location string = resourceGroup().location
 
 @description('Optional. Resource ID of the DDoS protection plan to assign the VNET to. If it\'s left blank, DDoS protection will not be configured. If it\'s provided, the VNET created by this template will be attached to the referenced DDoS protection plan. The DDoS protection plan can exist in the same or in a different subscription.')
 param ddosProtectionPlanResourceId string?
 
+import { diagnosticSettingFullType } from 'br/public:avm/utl/types/avm-common-types:0.2.1'
+@description('Optional. The diagnostic settings of the service.')
+param diagnosticSettings diagnosticSettingFullType[]?
+
+@description('Optional. DNS Servers associated to the Virtual Network.')
+param dnsServers string[]?
+
+@description('Optional. Enable/Disable usage telemetry for module.')
+param enableTelemetry bool = true
+
+@description('Optional. Deprecated. Indicates if VM protection is enabled for all the subnets in the virtual network. This parameter has been replaced by enableDDosProtection. If you want to enable VM protection, provide a valid DDoS protection plan resource ID in the ddosProtectionPlanResourceId parameter.')
+param enableVmProtection bool?
+
+@maxValue(30)
+@description('Optional. The flow timeout in minutes for the Virtual Network, which is used to enable connection tracking for intra-VM flows. Possible values are between 4 and 30 minutes. Default value 0 will set the property to null.')
+param flowTimeoutInMinutes int = 0
+
+import { lockType } from 'br/public:avm/utl/types/avm-common-types:0.2.1'
+@description('Optional. The lock settings of the service.')
+param lock lockType?
+
 @description('Optional. Virtual Network Peering configurations.')
 param peerings peeringType[]?
+
+import { roleAssignmentType } from 'br/public:avm/utl/types/avm-common-types:0.2.1'
+@description('Optional. Array of role assignments to create.')
+param roleAssignments roleAssignmentType[]?
+
+@description('Optional. An Array of subnets to deploy to the Virtual Network.')
+param subnets subnetType[]?
+
+@description('Optional. Tags of the resource.')
+param tags object?
+
+@description('Optional. The BGP community associated with the virtual network. The value must begin with 12076: and can be followed by a number from 20000 to 49999.')
+param virtualNetworkBgpCommunity string?
 
 @description('Optional. Indicates if encryption is enabled on virtual network and if VM without encryption is allowed in encrypted VNet. Requires the EnableVNetEncryption feature to be registered for the subscription and a supported region to use this property.')
 param vnetEncryption bool = false
@@ -37,31 +74,6 @@ param vnetEncryption bool = false
 ])
 @description('Optional. If the encrypted VNet allows VM that does not support encryption. Can only be used when vnetEncryption is enabled.')
 param vnetEncryptionEnforcement string = 'AllowUnencrypted'
-
-@maxValue(30)
-@description('Optional. The flow timeout in minutes for the Virtual Network, which is used to enable connection tracking for intra-VM flows. Possible values are between 4 and 30 minutes. Default value 0 will set the property to null.')
-param flowTimeoutInMinutes int = 0
-
-import { diagnosticSettingFullType } from 'br/public:avm/utl/types/avm-common-types:0.2.1'
-@description('Optional. The diagnostic settings of the service.')
-param diagnosticSettings diagnosticSettingFullType[]?
-
-import { lockType } from 'br/public:avm/utl/types/avm-common-types:0.2.1'
-@description('Optional. The lock settings of the service.')
-param lock lockType?
-
-import { roleAssignmentType } from 'br/public:avm/utl/types/avm-common-types:0.2.1'
-@description('Optional. Array of role assignments to create.')
-param roleAssignments roleAssignmentType[]?
-
-@description('Optional. Tags of the resource.')
-param tags object?
-
-@description('Optional. Enable/Disable usage telemetry for module.')
-param enableTelemetry bool = true
-
-@description('Optional. Deprecated. Indicates if VM protection is enabled for all the subnets in the virtual network. This parameter has been replaced by enableDDosProtection. If you want to enable VM protection, provide a valid DDoS protection plan resource ID in the ddosProtectionPlanResourceId parameter.')
-param enableVmProtection bool?
 
 var enableReferencedModulesTelemetry = false
 
@@ -152,6 +164,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-07-01' = {
         }
       : null
     enableDdosProtection: !empty(ddosProtectionPlanResourceId)
+    enableVmProtection: enableVmProtection
     encryption: vnetEncryption == true
       ? {
           enabled: vnetEncryption
@@ -159,7 +172,6 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-07-01' = {
         }
       : null
     flowTimeoutInMinutes: flowTimeoutInMinutes != 0 ? flowTimeoutInMinutes : null
-    enableVmProtection: enableVmProtection
   }
 }
 
@@ -172,9 +184,11 @@ module virtualNetwork_subnets 'subnet/main.bicep' = [
       name: subnet.name
       addressPrefix: subnet.?addressPrefix
       addressPrefixes: subnet.?addressPrefixes
-      ipamPoolPrefixAllocations: subnet.?ipamPoolPrefixAllocations
       applicationGatewayIPConfigurations: subnet.?applicationGatewayIPConfigurations
+      defaultOutboundAccess: subnet.?defaultOutboundAccess
       delegation: subnet.?delegation
+      enableTelemetry: enableReferencedModulesTelemetry
+      ipamPoolPrefixAllocations: subnet.?ipamPoolPrefixAllocations
       natGatewayResourceId: subnet.?natGatewayResourceId
       networkSecurityGroupResourceId: subnet.?networkSecurityGroupResourceId
       privateEndpointNetworkPolicies: subnet.?privateEndpointNetworkPolicies
@@ -183,9 +197,7 @@ module virtualNetwork_subnets 'subnet/main.bicep' = [
       routeTableResourceId: subnet.?routeTableResourceId
       serviceEndpointPolicies: subnet.?serviceEndpointPolicies
       serviceEndpoints: subnet.?serviceEndpoints
-      defaultOutboundAccess: subnet.?defaultOutboundAccess
       sharingScope: subnet.?sharingScope
-      enableTelemetry: enableReferencedModulesTelemetry
     }
   }
 ]
