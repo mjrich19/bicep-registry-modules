@@ -17,29 +17,9 @@ param location string = resourceGroup().location
 
 var addressPrefix = '10.0.0.0/16'
 
-resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-07-01' = {
-  name: virtualNetworkName
-  location: location
-  properties: {
-    addressSpace: {
-      addressPrefixes: [
-        addressPrefix
-      ]
-    }
-    subnets: [
-      {
-        name: 'defaultSubnet'
-        properties: {
-          addressPrefix: cidrSubnet(addressPrefix, 16, 0)
-        }
-      }
-    ]
-  }
-}
-
 resource networkSecurityGroupBastion 'Microsoft.Network/networkSecurityGroups@2024-07-01' = {
-  name: networkSecurityGroupBastionName
   location: location
+  name: networkSecurityGroupBastionName
   properties: {
     securityRules: [
       {
@@ -159,8 +139,28 @@ resource networkSecurityGroupBastion 'Microsoft.Network/networkSecurityGroups@20
   }
 }
 
-@description('The resource ID of the created Virtual Network.')
-output virtualNetworkResourceId string = virtualNetwork.id
+resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-07-01' = {
+  location: location
+  name: virtualNetworkName
+  properties: {
+    addressSpace: {
+      addressPrefixes: [
+        addressPrefix
+      ]
+    }
+    subnets: [
+      {
+        name: 'defaultSubnet'
+        properties: {
+          addressPrefix: cidrSubnet(addressPrefix, 16, 0)
+        }
+      }
+    ]
+  }
+}
 
 @description('The resource ID of the created Bastion Network Security Group.')
 output networkSecurityGroupBastionResourceId string = networkSecurityGroupBastion.id
+
+@description('The resource ID of the created Virtual Network.')
+output virtualNetworkResourceId string = virtualNetwork.id

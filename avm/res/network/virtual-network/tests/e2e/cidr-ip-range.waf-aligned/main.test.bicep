@@ -34,11 +34,6 @@ param serviceShort string = 'nvncidrwaf'
 
 // General resources
 // =================
-resource resourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' = {
-  name: resourceGroupName
-  location: resourceLocation
-}
-
 module nestedDependencies 'dependencies.bicep' = {
   scope: resourceGroup
   name: '${uniqueString(deployment().name, resourceLocation)}-nestedDependencies'
@@ -49,6 +44,11 @@ module nestedDependencies 'dependencies.bicep' = {
     networkSecurityGroupBastionName: 'dep-${namePrefix}-nsg-bastion-${serviceShort}'
     location: resourceLocation
   }
+}
+
+resource resourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' = {
+  name: resourceGroupName
+  location: resourceLocation
 }
 
 // Diagnostics
@@ -70,6 +70,7 @@ module diagnosticDependencies '../../../../../../../utilities/e2e-template-asset
 // ============== //
 
 var addressPrefix = '10.0.0.0/16'
+
 @batchSize(1)
 module testDeployment '../../../main.bicep' = [
   for iteration in ['init', 'idem']: {

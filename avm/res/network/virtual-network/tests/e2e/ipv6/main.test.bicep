@@ -49,12 +49,12 @@ module testDeployment '../../../main.bicep' = [
     scope: resourceGroup
     name: '${uniqueString(deployment().name, resourceLocation)}-test-${serviceShort}-${iteration}'
     params: {
-      name: '${namePrefix}${serviceShort}001'
-      location: resourceLocation
       addressPrefixes: [
         '10.0.0.0/21'
         'fd00:592b:3014::/64'
       ]
+      location: resourceLocation
+      name: '${namePrefix}${serviceShort}001'
       subnets: [
         {
           name: 'ipv6-subnet'

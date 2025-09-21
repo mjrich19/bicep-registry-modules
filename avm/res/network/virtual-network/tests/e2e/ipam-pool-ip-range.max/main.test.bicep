@@ -34,21 +34,22 @@ param serviceShort string = 'nvnipammax'
 
 // General resources
 // =================
-resource resourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' = {
-  name: resourceGroupName
-  location: resourceLocation
-}
 
 module nestedDependencies 'dependencies.bicep' = {
   name: '${uniqueString(deployment().name, resourceLocation)}-nestedDependencies'
   scope: resourceGroup
   params: {
-    location: resourceLocation
-    networkManagerName: 'dep-${namePrefix}-vnm-${serviceShort}'
     addressPrefixes: [
       '172.16.0.0/22'
     ]
+    location: resourceLocation
+    networkManagerName: 'dep-${namePrefix}-vnm-${serviceShort}'
   }
+}
+
+resource resourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' = {
+  location: resourceLocation
+  name: resourceGroupName
 }
 
 // ============== //
@@ -61,12 +62,12 @@ module testDeployment '../../../main.bicep' = [
     scope: resourceGroup
     name: '${uniqueString(deployment().name, resourceLocation)}-test-${serviceShort}-${iteration}'
     params: {
-      name: '${namePrefix}${serviceShort}001'
-      location: resourceLocation
       addressPrefixes: [
         nestedDependencies.outputs.networkManagerIpamPoolId
       ]
       ipamPoolNumberOfIpAddresses: '254'
+      location: resourceLocation
+      name: '${namePrefix}${serviceShort}001'
       subnets: [
         {
           name: 'subnet-1'

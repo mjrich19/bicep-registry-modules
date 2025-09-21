@@ -22,23 +22,18 @@ param routeTableName string
 param location string = resourceGroup().location
 
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
+  location: location
   name: managedIdentityName
-  location: location
-}
-
-resource routeTable 'Microsoft.Network/routeTables@2024-07-01' = {
-  name: routeTableName
-  location: location
 }
 
 resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2024-07-01' = {
-  name: networkSecurityGroupName
   location: location
+  name: networkSecurityGroupName
 }
 
 resource networkSecurityGroupBastion 'Microsoft.Network/networkSecurityGroups@2024-07-01' = {
-  name: networkSecurityGroupBastionName
   location: location
+  name: networkSecurityGroupBastionName
   properties: {
     securityRules: [
       {
@@ -158,8 +153,13 @@ resource networkSecurityGroupBastion 'Microsoft.Network/networkSecurityGroups@20
   }
 }
 
-@description('The resource ID of the created Route Table.')
-output routeTableResourceId string = routeTable.id
+resource routeTable 'Microsoft.Network/routeTables@2024-07-01' = {
+  name: routeTableName
+  location: location
+}
+
+@description('The principal ID of the created Managed Identity.')
+output managedIdentityPrincipalId string = managedIdentity.properties.principalId
 
 @description('The resource ID of the created Network Security Group.')
 output networkSecurityGroupResourceId string = networkSecurityGroup.id
@@ -167,5 +167,5 @@ output networkSecurityGroupResourceId string = networkSecurityGroup.id
 @description('The resource ID of the created Bastion Network Security Group.')
 output networkSecurityGroupBastionResourceId string = networkSecurityGroupBastion.id
 
-@description('The principal ID of the created Managed Identity.')
-output managedIdentityPrincipalId string = managedIdentity.properties.principalId
+@description('The resource ID of the created Route Table.')
+output routeTableResourceId string = routeTable.id

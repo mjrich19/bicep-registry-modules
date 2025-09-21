@@ -35,8 +35,8 @@ param serviceShort string = 'nvncidrmin'
 // General resources
 // =================
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' = {
-  name: resourceGroupName
   location: resourceLocation
+  name: resourceGroupName
 }
 
 // ============== //
@@ -49,10 +49,10 @@ module testDeployment '../../../main.bicep' = [
     scope: resourceGroup
     name: '${uniqueString(deployment().name, resourceLocation)}-test-${serviceShort}-${iteration}'
     params: {
-      name: '${namePrefix}${serviceShort}001'
       addressPrefixes: [
         '10.0.0.0/16'
       ]
+      name: '${namePrefix}${serviceShort}001'
     }
   }
 ]

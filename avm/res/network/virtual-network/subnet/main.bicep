@@ -126,10 +126,6 @@ resource avmTelemetry 'Microsoft.Resources/deployments@2025-04-01' = if (enableT
   }
 }
 
-resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-07-01' existing = {
-  name: virtualNetworkName
-}
-
 resource subnet 'Microsoft.Network/virtualNetworks/subnets@2024-07-01' = {
   parent: virtualNetwork
   name: name
@@ -178,28 +174,23 @@ resource subnet 'Microsoft.Network/virtualNetworks/subnets@2024-07-01' = {
 
 resource subnet_roleAssignments 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
   for (roleAssignment, index) in (formattedRoleAssignments ?? []): {
+    scope: subnet
     name: roleAssignment.?name ?? guid(subnet.id, roleAssignment.principalId, roleAssignment.roleDefinitionId)
     properties: {
-      roleDefinitionId: roleAssignment.roleDefinitionId
-      principalId: roleAssignment.principalId
-      description: roleAssignment.?description
-      principalType: roleAssignment.?principalType
       condition: roleAssignment.?condition
       conditionVersion: !empty(roleAssignment.?condition) ? (roleAssignment.?conditionVersion ?? '2.0') : null // Must only be set if condtion is set
       delegatedManagedIdentityResourceId: roleAssignment.?delegatedManagedIdentityResourceId
+      description: roleAssignment.?description
+      principalId: roleAssignment.principalId
+      principalType: roleAssignment.?principalType
+      roleDefinitionId: roleAssignment.roleDefinitionId
     }
-    scope: subnet
   }
 ]
 
-@description('The resource group the virtual network peering was deployed into.')
-output resourceGroupName string = resourceGroup().name
-
-@description('The name of the virtual network peering.')
-output name string = subnet.name
-
-@description('The resource ID of the virtual network peering.')
-output resourceId string = subnet.id
+resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-07-01' existing = {
+  name: virtualNetworkName
+}
 
 @description('The address prefix for the subnet.')
 output addressPrefix string = subnet.properties.?addressPrefix ?? ''
@@ -209,3 +200,12 @@ output addressPrefixes array = subnet.properties.?addressPrefixes ?? []
 
 @description('The IPAM pool prefix allocations for the subnet.')
 output ipamPoolPrefixAllocations array = subnet.properties.?ipamPoolPrefixAllocations ?? []
+
+@description('The name of the virtual network peering.')
+output name string = subnet.name
+
+@description('The resource group the virtual network peering was deployed into.')
+output resourceGroupName string = resourceGroup().name
+
+@description('The resource ID of the virtual network peering.')
+output resourceId string = subnet.id

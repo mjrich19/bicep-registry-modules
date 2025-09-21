@@ -34,10 +34,6 @@ param serviceShort string = 'nvnipamwaf'
 
 // General resources
 // =================
-resource resourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' = {
-  name: resourceGroupName
-  location: resourceLocation
-}
 
 module nestedDependencies 'dependencies.bicep' = {
   scope: resourceGroup
@@ -53,6 +49,11 @@ module nestedDependencies 'dependencies.bicep' = {
       '10.0.0.0/16'
     ]
   }
+}
+
+resource resourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' = {
+  name: resourceGroupName
+  location: resourceLocation
 }
 
 // Diagnostics
@@ -79,8 +80,6 @@ module testDeployment '../../../main.bicep' = [
     scope: resourceGroup
     name: '${uniqueString(deployment().name, resourceLocation)}-test-${serviceShort}-${iteration}'
     params: {
-      name: '${namePrefix}${serviceShort}001'
-      location: resourceLocation
       addressPrefixes: [
         nestedDependencies.outputs.networkManagerIpamPoolId
       ]
@@ -104,6 +103,8 @@ module testDeployment '../../../main.bicep' = [
       ]
       flowTimeoutInMinutes: 20
       ipamPoolNumberOfIpAddresses: '65536'
+      location: resourceLocation
+      name: '${namePrefix}${serviceShort}001'
       subnets: [
         {
           name: 'GatewaySubnet'

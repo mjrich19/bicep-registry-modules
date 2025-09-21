@@ -16,8 +16,8 @@ param networkManagerName string
 param location string = resourceGroup().location
 
 resource networkManager 'Microsoft.Network/networkManagers@2024-07-01' = {
-  name: networkManagerName
   location: location
+  name: networkManagerName
   properties: {
     networkManagerScopes: {
       subscriptions: [
@@ -28,12 +28,12 @@ resource networkManager 'Microsoft.Network/networkManagers@2024-07-01' = {
 }
 
 resource networkManagerIpamPool 'Microsoft.Network/networkManagers/ipamPools@2024-07-01' = {
-  name: '${networkManagerName}-ipamPool'
   parent: networkManager
   location: location
+  name: '${networkManagerName}-ipamPool'
   properties: {
-    displayName: '${networkManagerName}-ipamPool'
     addressPrefixes: addressPrefixes
+    displayName: '${networkManagerName}-ipamPool'
   }
 }
 

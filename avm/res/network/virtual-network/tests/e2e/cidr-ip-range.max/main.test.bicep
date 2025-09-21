@@ -34,10 +34,6 @@ param serviceShort string = 'nvncidrmax'
 
 // General resources
 // =================
-resource resourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' = {
-  name: resourceGroupName
-  location: resourceLocation
-}
 
 module nestedDependencies 'dependencies.bicep' = {
   scope: resourceGroup
@@ -45,11 +41,16 @@ module nestedDependencies 'dependencies.bicep' = {
   params: {
     location: resourceLocation
     managedIdentityName: 'dep-${namePrefix}-msi-${serviceShort}'
-    routeTableName: 'dep-${namePrefix}-rt-${serviceShort}'
-    virtualNetworkName: 'dep-${namePrefix}-vnet-${serviceShort}'
     networkSecurityGroupName: 'dep-${namePrefix}-nsg-${serviceShort}'
     networkSecurityGroupBastionName: 'dep-${namePrefix}-nsg-bastion-${serviceShort}'
+    routeTableName: 'dep-${namePrefix}-rt-${serviceShort}'
+    virtualNetworkName: 'dep-${namePrefix}-vnet-${serviceShort}'
   }
+}
+
+resource resourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' = {
+  location: resourceLocation
+  name: resourceGroupName
 }
 
 // Diagnostics
@@ -58,11 +59,11 @@ module diagnosticDependencies '../../../../../../../utilities/e2e-template-asset
   scope: resourceGroup
   name: '${uniqueString(deployment().name, resourceLocation)}-diagnosticDependencies'
   params: {
-    storageAccountName: 'dep${namePrefix}diasa${serviceShort}01'
-    logAnalyticsWorkspaceName: 'dep-${namePrefix}-law-${serviceShort}'
     eventHubNamespaceEventHubName: 'dep-${namePrefix}-evh-${serviceShort}'
     eventHubNamespaceName: 'dep-${namePrefix}-evhns-${serviceShort}'
     location: resourceLocation
+    logAnalyticsWorkspaceName: 'dep-${namePrefix}-law-${serviceShort}'
+    storageAccountName: 'dep${namePrefix}diasa${serviceShort}01'
   }
 }
 
@@ -71,6 +72,7 @@ module diagnosticDependencies '../../../../../../../utilities/e2e-template-asset
 // ============== //
 
 var addressPrefix = '10.1.0.0/16'
+
 @batchSize(1)
 module testDeployment '../../../main.bicep' = [
   for iteration in ['init', 'idem']: {

@@ -5,6 +5,9 @@
 @description('Required. List of IP address prefixes to be used for the IPAM pool.')
 param addressPrefixes array
 
+@description('Required. The name of the Managed Identity to create.')
+param managedIdentityName string
+
 @description('Required. The name of the Network Manager to create.')
 param networkManagerName string
 
@@ -13,9 +16,6 @@ param networkSecurityGroupBastionName string
 
 @description('Required. The name of the Network Security Group to create.')
 param networkSecurityGroupName string
-
-@description('Required. The name of the Managed Identity to create.')
-param managedIdentityName string
 
 @description('Required. The name of the Route Table to create.')
 param routeTableName string
@@ -28,23 +28,18 @@ param routeTableName string
 param location string = resourceGroup().location
 
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
+  location: location
   name: managedIdentityName
-  location: location
-}
-
-resource routeTable 'Microsoft.Network/routeTables@2024-07-01' = {
-  name: routeTableName
-  location: location
 }
 
 resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2024-07-01' = {
-  name: networkSecurityGroupName
   location: location
+  name: networkSecurityGroupName
 }
 
 resource networkSecurityGroupBastion 'Microsoft.Network/networkSecurityGroups@2024-07-01' = {
-  name: networkSecurityGroupBastionName
   location: location
+  name: networkSecurityGroupBastionName
   properties: {
     securityRules: [
       {
@@ -165,8 +160,8 @@ resource networkSecurityGroupBastion 'Microsoft.Network/networkSecurityGroups@20
 }
 
 resource networkManager 'Microsoft.Network/networkManagers@2024-07-01' = {
-  name: networkManagerName
   location: location
+  name: networkManagerName
   properties: {
     networkManagerScopes: {
       subscriptions: [
@@ -177,17 +172,19 @@ resource networkManager 'Microsoft.Network/networkManagers@2024-07-01' = {
 }
 
 resource networkManagerIpamPool 'Microsoft.Network/networkManagers/ipamPools@2024-07-01' = {
-  name: '${networkManagerName}-ipamPool'
   parent: networkManager
   location: location
+  name: '${networkManagerName}-ipamPool'
   properties: {
     displayName: '${networkManagerName}-ipamPool'
     addressPrefixes: addressPrefixes
   }
 }
 
-@description('The resource ID of the created Route Table.')
-output routeTableResourceId string = routeTable.id
+resource routeTable 'Microsoft.Network/routeTables@2024-07-01' = {
+  location: location
+  name: routeTableName
+}
 
 @description('The resource ID of the created Network Security Group.')
 output networkSecurityGroupResourceId string = networkSecurityGroup.id
@@ -203,3 +200,6 @@ output networkManagerId string = networkManager.id
 
 @description('The resource ID of the Network Manager IPAM Pool.')
 output networkManagerIpamPoolId string = networkManagerIpamPool.id
+
+@description('The resource ID of the created Route Table.')
+output routeTableResourceId string = routeTable.id

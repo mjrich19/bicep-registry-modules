@@ -75,8 +75,6 @@ param vnetEncryption bool = false
 @description('Optional. If the encrypted VNet allows VM that does not support encryption. Can only be used when vnetEncryption is enabled.')
 param vnetEncryptionEnforcement string = 'AllowUnencrypted'
 
-var enableReferencedModulesTelemetry = false
-
 var builtInRoleNames = {
   Contributor: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
   'Network Contributor': subscriptionResourceId(
@@ -94,6 +92,8 @@ var builtInRoleNames = {
     '18d7d88d-d35e-4fb5-a5c3-7773c20a72d9'
   )
 }
+
+var enableReferencedModulesTelemetry = false
 
 var formattedRoleAssignments = [
   for (roleAssignment, index) in (roleAssignments ?? []): union(roleAssignment, {
@@ -130,9 +130,8 @@ resource avmTelemetry 'Microsoft.Resources/deployments@2025-04-01' = if (enableT
 }
 
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-07-01' = {
-  name: name
   location: location
-  tags: tags
+  name: name
   properties: {
     addressSpace: contains(addressPrefixes[0], '/Microsoft.Network/networkManagers/')
       ? {
@@ -173,6 +172,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-07-01' = {
       : null
     flowTimeoutInMinutes: flowTimeoutInMinutes != 0 ? flowTimeoutInMinutes : null
   }
+  tags: tags
 }
 
 @batchSize(1)
@@ -180,8 +180,6 @@ module virtualNetwork_subnets 'subnet/main.bicep' = [
   for (subnet, index) in (subnets ?? []): {
     name: '${uniqueString(deployment().name, location)}-subnet-${index}'
     params: {
-      virtualNetworkName: virtualNetwork.name
-      name: subnet.name
       addressPrefix: subnet.?addressPrefix
       addressPrefixes: subnet.?addressPrefixes
       applicationGatewayIPConfigurations: subnet.?applicationGatewayIPConfigurations
@@ -190,6 +188,7 @@ module virtualNetwork_subnets 'subnet/main.bicep' = [
       enableTelemetry: enableReferencedModulesTelemetry
       ipamPoolPrefixAllocations: subnet.?ipamPoolPrefixAllocations
       natGatewayResourceId: subnet.?natGatewayResourceId
+      name: subnet.name
       networkSecurityGroupResourceId: subnet.?networkSecurityGroupResourceId
       privateEndpointNetworkPolicies: subnet.?privateEndpointNetworkPolicies
       privateLinkServiceNetworkPolicies: subnet.?privateLinkServiceNetworkPolicies
@@ -198,6 +197,7 @@ module virtualNetwork_subnets 'subnet/main.bicep' = [
       serviceEndpointPolicies: subnet.?serviceEndpointPolicies
       serviceEndpoints: subnet.?serviceEndpoints
       sharingScope: subnet.?sharingScope
+      virtualNetworkName: virtualNetwork.name
     }
   }
 ]
@@ -205,20 +205,20 @@ module virtualNetwork_subnets 'subnet/main.bicep' = [
 // Local to Remote peering
 module virtualNetwork_peering_local 'virtual-network-peering/main.bicep' = [
   for (peering, index) in (peerings ?? []): {
-    name: '${uniqueString(deployment().name, location)}-virtualNetworkPeering-local-${index}'
-    // This is a workaround for an error in which the peering is deployed whilst the subnet creation is still taking place
-    // TODO: https://github.com/Azure/bicep/issues/1013 would be a better solution
     dependsOn: [
       virtualNetwork_subnets
     ]
+    name: '${uniqueString(deployment().name, location)}-virtualNetworkPeering-local-${index}'
+    // This is a workaround for an error in which the peering is deployed whilst the subnet creation is still taking place
+    // TODO: https://github.com/Azure/bicep/issues/1013 would be a better solution
     params: {
-      localVnetName: virtualNetwork.name
-      remoteVirtualNetworkResourceId: peering.remoteVirtualNetworkResourceId
-      name: peering.?name
       allowForwardedTraffic: peering.?allowForwardedTraffic
       allowGatewayTransit: peering.?allowGatewayTransit
       allowVirtualNetworkAccess: peering.?allowVirtualNetworkAccess
       doNotVerifyRemoteGateways: peering.?doNotVerifyRemoteGateways
+      localVnetName: virtualNetwork.name
+      name: peering.?name
+      remoteVirtualNetworkResourceId: peering.remoteVirtualNetworkResourceId
       useRemoteGateways: peering.?useRemoteGateways
     }
   }
@@ -227,30 +227,31 @@ module virtualNetwork_peering_local 'virtual-network-peering/main.bicep' = [
 // Remote to local peering (reverse)
 module virtualNetwork_peering_remote 'virtual-network-peering/main.bicep' = [
   for (peering, index) in (peerings ?? []): if (peering.?remotePeeringEnabled ?? false) {
-    name: '${uniqueString(deployment().name, location)}-virtualNetworkPeering-remote-${index}'
-    // This is a workaround for an error in which the peering is deployed whilst the subnet creation is still taking place
-    // TODO: https://github.com/Azure/bicep/issues/1013 would be a better solution
     dependsOn: [
       virtualNetwork_subnets
     ]
-    scope: resourceGroup(
-      split(peering.remoteVirtualNetworkResourceId, '/')[2],
-      split(peering.remoteVirtualNetworkResourceId, '/')[4]
-    )
+    name: '${uniqueString(deployment().name, location)}-virtualNetworkPeering-remote-${index}'
+    // This is a workaround for an error in which the peering is deployed whilst the subnet creation is still taking place
+    // TODO: https://github.com/Azure/bicep/issues/1013 would be a better solution
     params: {
-      localVnetName: last(split(peering.remoteVirtualNetworkResourceId, '/'))
-      remoteVirtualNetworkResourceId: virtualNetwork.id
-      name: peering.?remotePeeringName
       allowForwardedTraffic: peering.?remotePeeringAllowForwardedTraffic
       allowGatewayTransit: peering.?remotePeeringAllowGatewayTransit
       allowVirtualNetworkAccess: peering.?remotePeeringAllowVirtualNetworkAccess
       doNotVerifyRemoteGateways: peering.?remotePeeringDoNotVerifyRemoteGateways
+      localVnetName: last(split(peering.remoteVirtualNetworkResourceId, '/'))
+      name: peering.?remotePeeringName
+      remoteVirtualNetworkResourceId: virtualNetwork.id
       useRemoteGateways: peering.?remotePeeringUseRemoteGateways
     }
+    scope: resourceGroup(
+      split(peering.remoteVirtualNetworkResourceId, '/')[2],
+      split(peering.remoteVirtualNetworkResourceId, '/')[4]
+    )
   }
 ]
 
 resource virtualNetwork_lock 'Microsoft.Authorization/locks@2020-05-01' = if (!empty(lock ?? {}) && lock.?kind != 'None') {
+  scope: virtualNetwork
   name: lock.?name ?? 'lock-${name}'
   properties: {
     level: lock.?kind ?? ''
@@ -258,24 +259,16 @@ resource virtualNetwork_lock 'Microsoft.Authorization/locks@2020-05-01' = if (!e
       ? 'Cannot delete resource or child resources.'
       : 'Cannot delete or modify the resource or child resources.'
   }
-  scope: virtualNetwork
 }
 
 resource virtualNetwork_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = [
   for (diagnosticSetting, index) in (diagnosticSettings ?? []): {
+    scope: virtualNetwork
     name: diagnosticSetting.?name ?? '${name}-diagnosticSettings'
     properties: {
-      storageAccountId: diagnosticSetting.?storageAccountResourceId
-      workspaceId: diagnosticSetting.?workspaceResourceId
       eventHubAuthorizationRuleId: diagnosticSetting.?eventHubAuthorizationRuleResourceId
       eventHubName: diagnosticSetting.?eventHubName
-      metrics: [
-        for group in (diagnosticSetting.?metricCategories ?? [{ category: 'AllMetrics' }]): {
-          category: group.category
-          enabled: group.?enabled ?? true
-          timeGrain: null
-        }
-      ]
+      logAnalyticsDestinationType: diagnosticSetting.?logAnalyticsDestinationType
       logs: [
         for group in (diagnosticSetting.?logCategoriesAndGroups ?? [{ categoryGroup: 'allLogs' }]): {
           categoryGroup: group.?categoryGroup
@@ -284,36 +277,46 @@ resource virtualNetwork_diagnosticSettings 'Microsoft.Insights/diagnosticSetting
         }
       ]
       marketplacePartnerId: diagnosticSetting.?marketplacePartnerResourceId
-      logAnalyticsDestinationType: diagnosticSetting.?logAnalyticsDestinationType
+      metrics: [
+        for group in (diagnosticSetting.?metricCategories ?? [{ category: 'AllMetrics' }]): {
+          category: group.category
+          enabled: group.?enabled ?? true
+          timeGrain: null
+        }
+      ]
+      storageAccountId: diagnosticSetting.?storageAccountResourceId
+      workspaceId: diagnosticSetting.?workspaceResourceId
     }
-    scope: virtualNetwork
   }
 ]
 
 resource virtualNetwork_roleAssignments 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
   for (roleAssignment, index) in (formattedRoleAssignments ?? []): {
+    scope: virtualNetwork
     name: roleAssignment.?name ?? guid(virtualNetwork.id, roleAssignment.principalId, roleAssignment.roleDefinitionId)
     properties: {
-      roleDefinitionId: roleAssignment.roleDefinitionId
-      principalId: roleAssignment.principalId
-      description: roleAssignment.?description
-      principalType: roleAssignment.?principalType
       condition: roleAssignment.?condition
       conditionVersion: !empty(roleAssignment.?condition) ? (roleAssignment.?conditionVersion ?? '2.0') : null // Must only be set if condtion is set
       delegatedManagedIdentityResourceId: roleAssignment.?delegatedManagedIdentityResourceId
+      description: roleAssignment.?description
+      principalType: roleAssignment.?principalType
+      principalId: roleAssignment.principalId
+      roleDefinitionId: roleAssignment.roleDefinitionId
     }
-    scope: virtualNetwork
   }
 ]
+
+@description('The location the resource was deployed into.')
+output location string = virtualNetwork.location
+
+@description('The name of the virtual network.')
+output name string = virtualNetwork.name
 
 @description('The resource group the virtual network was deployed into.')
 output resourceGroupName string = resourceGroup().name
 
 @description('The resource ID of the virtual network.')
 output resourceId string = virtualNetwork.id
-
-@description('The name of the virtual network.')
-output name string = virtualNetwork.name
 
 @description('The names of the deployed subnets.')
 output subnetNames array = [for (subnet, index) in (subnets ?? []): virtualNetwork_subnets[index].outputs.name]
@@ -323,17 +326,11 @@ output subnetResourceIds array = [
   for (subnet, index) in (subnets ?? []): virtualNetwork_subnets[index].outputs.resourceId
 ]
 
-@description('The location the resource was deployed into.')
-output location string = virtualNetwork.location
-
 // =============== //
 //   Definitions   //
 // =============== //
 
 type peeringType = {
-  @description('Optional. The Name of VNET Peering resource. If not provided, default value will be peer-localVnetName-remoteVnetName.')
-  name: string?
-
   @description('Required. The Resource ID of the VNet that is this Local VNet is being peered to. Should be in the format of a Resource ID.')
   remoteVirtualNetworkResourceId: string
 
@@ -349,8 +346,8 @@ type peeringType = {
   @description('Optional. Do not verify the provisioning state of the remote gateway. Default is true.')
   doNotVerifyRemoteGateways: bool?
 
-  @description('Optional. If remote gateways can be used on this virtual network. If the flag is set to true, and allowGatewayTransit on remote peering is also true, virtual network will use gateways of remote virtual network for transit. Only one peering can have this flag set to true. This flag cannot be set if virtual network already has a gateway. Default is false.')
-  useRemoteGateways: bool?
+  @description('Optional. The Name of VNET Peering resource. If not provided, default value will be peer-localVnetName-remoteVnetName.')
+  name: string?
 
   @description('Optional. Deploy the outbound and the inbound peering.')
   remotePeeringEnabled: bool?
@@ -372,6 +369,9 @@ type peeringType = {
 
   @description('Optional. If remote gateways can be used on this virtual network. If the flag is set to true, and allowGatewayTransit on remote peering is also true, virtual network will use gateways of remote virtual network for transit. Only one peering can have this flag set to true. This flag cannot be set if virtual network already has a gateway. Default is false.')
   remotePeeringUseRemoteGateways: bool?
+
+  @description('Optional. If remote gateways can be used on this virtual network. If the flag is set to true, and allowGatewayTransit on remote peering is also true, virtual network will use gateways of remote virtual network for transit. Only one peering can have this flag set to true. This flag cannot be set if virtual network already has a gateway. Default is false.')
+  useRemoteGateways: bool?
 }
 
 type subnetType = {
@@ -400,6 +400,9 @@ type subnetType = {
   @description('Optional. Application gateway IP configurations of virtual network resource.')
   applicationGatewayIPConfigurations: object[]?
 
+  @description('Optional. Set this property to false to disable default outbound connectivity for all VMs in the subnet. This property can only be set at the time of subnet creation and cannot be updated for an existing subnet.')
+  defaultOutboundAccess: bool?
+
   @description('Optional. The delegation to enable on the subnet.')
   delegation: string?
 
@@ -426,9 +429,6 @@ type subnetType = {
 
   @description('Optional. The service endpoints to enable on the subnet.')
   serviceEndpoints: string[]?
-
-  @description('Optional. Set this property to false to disable default outbound connectivity for all VMs in the subnet. This property can only be set at the time of subnet creation and cannot be updated for an existing subnet.')
-  defaultOutboundAccess: bool?
 
   @description('Optional. Set this property to Tenant to allow sharing subnet with other subscriptions in your AAD tenant. This property can only be set if defaultOutboundAccess is set to false, both properties can only be set if subnet is empty.')
   sharingScope: ('DelegatedServices' | 'Tenant')?
