@@ -520,42 +520,6 @@
           "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.2.1"
         }
       }
-    },
-    "subResourceType": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "metadata": {
-            "description": "Required. The resource ID."
-          }
-        }
-      },
-      "metadata": {
-        "__bicep_export!": true,
-        "description": "The type for a SubResource reference."
-      }
-    },
-    "extendedLocationType": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string",
-          "metadata": {
-            "description": "Required. The name of the extended location."
-          }
-        },
-        "type": {
-          "type": "string",
-          "metadata": {
-            "description": "Required. The type of the extended location."
-          }
-        }
-      },
-      "metadata": {
-        "__bicep_export!": true,
-        "description": "The type for an extended location."
-      }
     }
   },
   "parameters": {
@@ -702,35 +666,6 @@
       "metadata": {
         "description": "Optional. Deprecated. Indicates if VM protection is enabled for all the subnets in the virtual network. This parameter has been replaced by enableDDosProtection. If you want to enable VM protection, provide a valid DDoS protection plan resource ID in the ddosProtectionPlanResourceId parameter."
       }
-    },
-    "ipAllocations": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/subResourceType"
-      },
-      "nullable": true,
-      "metadata": {
-        "description": "Optional. Array of IpAllocation which reference this VNET."
-      }
-    },
-    "privateEndpointVNetPolicies": {
-      "type": "string",
-      "allowedValues": [
-        "Disabled",
-        "Enabled",
-        "NetworkIntentPolicies"
-      ],
-      "nullable": true,
-      "metadata": {
-        "description": "Optional. Private Endpoint VNet Policies of the virtual network."
-      }
-    },
-    "extendedLocation": {
-      "$ref": "#/definitions/extendedLocationType",
-      "nullable": true,
-      "metadata": {
-        "description": "Optional. The extended location of the virtual network."
-      }
     }
   },
   "variables": {
@@ -778,7 +713,6 @@
       "name": "[parameters('name')]",
       "location": "[parameters('location')]",
       "tags": "[parameters('tags')]",
-      "extendedLocation": "[parameters('extendedLocation')]",
       "properties": {
         "addressSpace": "[if(contains(parameters('addressPrefixes')[0], '/Microsoft.Network/networkManagers/'), createObject('ipamPoolPrefixAllocations', createArray(createObject('pool', createObject('id', parameters('addressPrefixes')[0]), 'numberOfIpAddresses', parameters('ipamPoolNumberOfIpAddresses')))), createObject('addressPrefixes', parameters('addressPrefixes')))]",
         "bgpCommunities": "[if(not(empty(parameters('virtualNetworkBgpCommunity'))), createObject('virtualNetworkCommunity', parameters('virtualNetworkBgpCommunity')), null())]",
@@ -787,9 +721,7 @@
         "enableDdosProtection": "[not(empty(parameters('ddosProtectionPlanResourceId')))]",
         "encryption": "[if(equals(parameters('vnetEncryption'), true()), createObject('enabled', parameters('vnetEncryption'), 'enforcement', parameters('vnetEncryptionEnforcement')), null())]",
         "flowTimeoutInMinutes": "[if(not(equals(parameters('flowTimeoutInMinutes'), 0)), parameters('flowTimeoutInMinutes'), null())]",
-        "enableVmProtection": "[parameters('enableVmProtection')]",
-        "ipAllocations": "[parameters('ipAllocations')]",
-        "privateEndpointVNetPolicies": "[parameters('privateEndpointVNetPolicies')]"
+        "enableVmProtection": "[parameters('enableVmProtection')]"
       }
     },
     "virtualNetwork_lock": {
