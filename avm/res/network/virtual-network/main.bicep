@@ -63,6 +63,15 @@ param enableTelemetry bool = true
 @description('Optional. Deprecated. Indicates if VM protection is enabled for all the subnets in the virtual network. This parameter has been replaced by enableDDosProtection. If you want to enable VM protection, provide a valid DDoS protection plan resource ID in the ddosProtectionPlanResourceId parameter.')
 param enableVmProtection bool?
 
+@description('Optional. Array of IpAllocation which reference this VNET.')
+param ipAllocations subResourceType[]?
+
+@description('Optional. Private Endpoint VNet Policies of the virtual network.')
+param privateEndpointVNetPolicies ('Disabled' | 'Enabled' | 'NetworkIntentPolicies')?
+
+@description('Optional. The extended location of the virtual network.')
+param extendedLocation extendedLocationType?
+
 var enableReferencedModulesTelemetry = false
 
 var builtInRoleNames = {
@@ -121,6 +130,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
   name: name
   location: location
   tags: tags
+  extendedLocation: extendedLocation
   properties: {
     addressSpace: contains(addressPrefixes[0], '/Microsoft.Network/networkManagers/')
       ? {
@@ -160,6 +170,8 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
       : null
     flowTimeoutInMinutes: flowTimeoutInMinutes != 0 ? flowTimeoutInMinutes : null
     enableVmProtection: enableVmProtection
+    ipAllocations: ipAllocations
+    privateEndpointVNetPolicies: privateEndpointVNetPolicies
   }
 }
 
@@ -422,4 +434,21 @@ type subnetType = {
 
   @description('Optional. Set this property to Tenant to allow sharing subnet with other subscriptions in your AAD tenant. This property can only be set if defaultOutboundAccess is set to false, both properties can only be set if subnet is empty.')
   sharingScope: ('DelegatedServices' | 'Tenant')?
+}
+
+@export()
+@description('The type for a SubResource reference.')
+type subResourceType = {
+  @description('Required. The resource ID.')
+  id: string
+}
+
+@export()
+@description('The type for an extended location.')
+type extendedLocationType = {
+  @description('Required. The name of the extended location.')
+  name: string
+
+  @description('Required. The type of the extended location.')
+  type: string
 }
